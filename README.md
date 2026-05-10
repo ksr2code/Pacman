@@ -6,6 +6,19 @@
 
 ## Instructions
 
+After installation (with pip/uv/poetry), the program can be executed in two ways:
+
+- **scipt mode** 
+```bash 
+$> pac-man config.json
+```
+
+- **calling the python interpretor**
+```bash 
+$> python3 pac-man.py config.json
+```
+
+
 ## Resources
 
 ## Configuration
