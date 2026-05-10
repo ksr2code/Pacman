@@ -18,6 +18,17 @@ $> pac-man config.json
 $> python3 pac-man.py config.json
 ```
 
+### Packaging for Itch.io
+
+Pygbag compiles the Python game to WebAssembly, so it runs directly in the 
+browser on Itch.io.
+
+Pygbag is ideal because:
+- Itch.io has native web support
+- No download needed
+- Can be private/unlisted easily
+- Single packaging workflow
+
 
 ## Resources
 
