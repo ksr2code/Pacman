@@ -7,7 +7,7 @@ KO := \033[0;31mKO\033[0m
 
 
 install:
-	uv sync --python 3.10
+	UV_SKIP_WHEEL_FILENAME_CHECK=1 uv sync --python 3.10
 
 run:
 	uv run pac-man.py $(ARGS)
@@ -19,14 +19,15 @@ clean:
 	find . -type d -name __pycache__ -exec rm -rf {} +
 	find . -type d -name .mypy_cache -exec rm -rf {} +
 	find . -type d -name .venv -exec rm -rf {} +
+	find . -type d -name dist -exec rm -rf {} +
 	find . -name .pytest_cache -exec rm -rf {} +
 	find . -name .ruff_cache -exec rm -rf {} +
 	find . -name "*.pyc" -delete
 	find . -name "*.pyo" -delete
 
 lint:
-	uv run flake8 $(PY_FILES)
-	uv run mypy $(PY_FILES) \
+	UV_SKIP_WHEEL_FILENAME_CHECK=1 uv run flake8 $(PY_FILES)
+	UV_SKIP_WHEEL_FILENAME_CHECK=1 uv run mypy $(PY_FILES) \
 		--explicit-package-bases \
 		--warn-return-any \
 		--warn-unused-ignores \
@@ -36,8 +37,10 @@ lint:
 		--exclude '(^\.venv/)'
 
 lint-strict:
-	uv run flake8 $(PY_FILES)
-	uv run mypy $(PY_FILES)\
+	UV_SKIP_WHEEL_FILENAME_CHECK=1 uv run flake8 $(PY_FILES)
+	UV_SKIP_WHEEL_FILENAME_CHECK=1 uv run mypy $(PY_FILES)\
 		--explicit-package-bases \
 		--strict \
 		--exclude '(^\.venv/)'
+
+re: clean install
