@@ -440,7 +440,7 @@ requires-dist = [
     { name = "mypy" },
     { name = "numpy" },
     { name = "pydantic", specifier = "==2.0.1" },
-    { name = "pygame" },
+    { name = "pygame", specifier = ">=2.0" },
     { name = "pygbag" },
     { name = "pytest", specifier = ">=9.0.2" },
     { name = "typing-extensions", specifier = ">=4.7.0" },
