@@ -12,7 +12,7 @@ class Spritesheet(object):
         )
         self.sheet = pygame.image.load(sprite_path).convert()
 
-    def getImage(self, x, y):
+    def getImage(self, x: int, y: int) -> pygame.SurfaceType:
         self.sheet.set_clip(pygame.Rect(x, y, 32, 32))
         # Copy the subsurface instead of returning a view
         return self.sheet.subsurface(self.sheet.get_clip()).copy()

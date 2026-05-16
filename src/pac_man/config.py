@@ -1,11 +1,13 @@
+import json
 from pydantic import BaseModel, ValidationError
 from typing import Optional
-import json
+from . import constants as const
 
 
 class ConfigData(BaseModel):
     width: int
     height: int
+    seed: int
 
 
 class Config:
@@ -34,8 +36,12 @@ class Config:
 
     @property
     def width(self):
-        return self.data.width if self.data else None
+        return self.data.width * const.TILE_SIZE if self.data else None
 
     @property
     def height(self):
-        return self.data.height if self.data else None
+        return self.data.height * const.TILE_SIZE if self.data else None
+
+    @property
+    def seed(self):
+        return self.data.seed if self.data else 42
