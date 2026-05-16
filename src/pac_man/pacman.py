@@ -15,7 +15,7 @@ def pacman(cfg_file_path):
 
     pygame.init()
     window = pygame.display.set_mode((cfg.width, cfg.height), vsync=1)
-    maze = Maze(window)
+    maze = Maze(window, cfg)
     running = True
 
     animation_frame_duration = 1.0 / 15.0  # 15 FPS for smoother animation
