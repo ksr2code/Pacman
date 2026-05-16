@@ -12,7 +12,7 @@ class ConfigData(BaseModel):
 
 class Config:
     def __init__(self) -> None:
-        self.data: Optional[ConfigData] = None
+        self.data: ConfigData
 
     def read(self, file: str) -> bool:
         """
@@ -36,11 +36,11 @@ class Config:
 
     @property
     def width(self):
-        return self.data.width * const.TILE_SIZE if self.data else None
+        return self.data.width
 
     @property
     def height(self):
-        return self.data.height * const.TILE_SIZE if self.data else None
+        return self.data.height
 
     @property
     def seed(self):

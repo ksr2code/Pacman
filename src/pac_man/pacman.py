@@ -14,8 +14,18 @@ def pacman(cfg_file_path):
         exit()
 
     pygame.init()
-    window = pygame.display.set_mode((cfg.width, cfg.height), vsync=1)
+    # Calculate window size based on maze dimensions (each cell is 32x32 pixels)
+    # Maze grid is (width*2+1) x (height*2+1) cells after rendering
+    TILE_SIZE = 32
+    window_width = (cfg.width * 2 + 1) * TILE_SIZE
+    window_height = (cfg.height * 2 + 1) * TILE_SIZE
+    window = pygame.display.set_mode((window_width, window_height), vsync=1)
+    pygame.display.set_caption("Pac-Man")
+    window.fill((0, 0, 0))
+    pygame.display.update()
+    
     maze = Maze(window, cfg)
+
     running = True
 
     animation_frame_duration = 1.0 / 15.0  # 15 FPS for smoother animation
@@ -64,13 +74,13 @@ def pacman(cfg_file_path):
             frame_times.append(passed)
 
             window.fill((0, 0, 0))
-            # window.blit(frames[frame_index], (x, 100))
-
-            # font = Text()
-            # font_surf = font.render("0123456")
-            # window.blit(font_surf, (0, 0))
-
             maze.draw()
+            window.blit(frames[frame_index], (x, 100))
+
+            font = Text()
+            font_surf = font.render("0123456")
+            window.blit(font_surf, (0, 0))
+
 
             pygame.display.flip()
 
