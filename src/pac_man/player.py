@@ -24,6 +24,7 @@ class Player:
         self.py: float = row * const.TILE_SIZE
 
         self.direction: tuple[int, int] | None = None
+        self.next_direction: tuple[int, int] | None = None
 
         spritesheet = Spritesheet()
         self.frames = [
@@ -33,14 +34,22 @@ class Player:
 
     def set_direction(self, name: str) -> None:
         d = DIRECTIONS.get(name)
-        if d and self.maze.is_walkable(
-            self.grid_row + d[0], self.grid_col + d[1]
+        if d:
+            self.next_direction = d
+
+    def _try_queued_direction(self) -> None:
+        if self.next_direction and self.maze.is_walkable(
+            self.grid_row + self.next_direction[0],
+            self.grid_col + self.next_direction[1],
         ):
-            self.direction = d
+            self.direction = self.next_direction
+            self.next_direction = None
 
     def update(self, dt: float) -> None:
         if not self.direction:
-            return
+            self._try_queued_direction()
+            if not self.direction:
+                return
 
         move = self.speed * dt
         dr, dc = self.direction
@@ -57,8 +66,10 @@ class Player:
             self.py = target_py
             self.grid_row += dr
             self.grid_col += dc
-            if not self.maze.is_walkable(
-                self.grid_row + dr, self.grid_col + dc
+            self._try_queued_direction()
+            if self.direction and not self.maze.is_walkable(
+                self.grid_row + self.direction[0],
+                self.grid_col + self.direction[1],
             ):
                 self.direction = None
         else:
