@@ -27,9 +27,14 @@ class Player:
         self.next_direction: tuple[int, int] | None = None
 
         spritesheet = Spritesheet()
-        self.frames = [
-            spritesheet.getImage(0, i * 32) for i in range(3)
-        ]
+        base = [spritesheet.getImage(0, i * 32) for i in range(3)]
+        self.frames: dict[str, list[pygame.SurfaceType]] = {
+            "right": base,
+            "left": [pygame.transform.rotate(f, 180) for f in base],
+            "up": [pygame.transform.rotate(f, 90) for f in base],
+            "down": [pygame.transform.rotate(f, -90) for f in base],
+        }
+        self.last_dir: str = "right"
         self.anim_time: float = 0.0
 
     def set_direction(self, name: str) -> None:
@@ -79,5 +84,10 @@ class Player:
         self.anim_time += dt
 
     def draw(self, screen: pygame.SurfaceType) -> None:
-        idx = int(self.anim_time * 10) % len(self.frames)
-        screen.blit(self.frames[idx], (self.px, self.py))
+        if self.direction:
+            for name, d in DIRECTIONS.items():
+                if d == self.direction:
+                    self.last_dir = name
+                    break
+        idx = int(self.anim_time * 10) % len(self.frames[self.last_dir])
+        screen.blit(self.frames[self.last_dir][idx], (self.px, self.py))
