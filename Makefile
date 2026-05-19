@@ -14,10 +14,10 @@ build:
 	UV_SKIP_WHEEL_FILENAME_CHECK=1 uv run pygbag --disable-sound-format-error --no_opt pac-man.py
 
 run:
-	uv run pac-man.py $(ARGS)
+	UV_SKIP_WHEEL_FILENAME_CHECK=1 uv run pac-man.py $(ARGS)
 
 debug:
-	uv run python3 -m pdb pac-man.py $(ARGS)
+	UV_SKIP_WHEEL_FILENAME_CHECK=1 uv run python3 -m pdb pac-man.py $(ARGS)
 
 clean:
 	find . -type d -name __pycache__ -exec rm -rf {} +
