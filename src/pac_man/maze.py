@@ -107,9 +107,9 @@ class Maze:
 
         return surface
 
-    def draw(self) -> None:
+    def draw(self, offset_y: int = 0) -> None:
         """Blit the pre-rendered maze surface."""
-        self.screen.blit(self.maze_surface, (0, 0))
+        self.screen.blit(self.maze_surface, (0, offset_y))
 
     def is_walkable(self, row: int, col: int) -> bool:
         """Check if a cell in the out grid is a walkable corridor."""

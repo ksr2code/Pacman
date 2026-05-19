@@ -72,11 +72,11 @@ class Pacgums:
             self._blink_timer = 0.0
             self._blink_visible = not self._blink_visible
 
-    def draw(self, screen: pygame.SurfaceType) -> None:
+    def draw(self, screen: pygame.SurfaceType, offset_y: int = 0) -> None:
         half = const.TILE_SIZE // 2
         for (r, c), kind in self.pacgums.items():
             cx = c * const.TILE_SIZE + half
-            cy = r * const.TILE_SIZE + half
+            cy = r * const.TILE_SIZE + half + offset_y
             if kind == "super":
                 if self._blink_visible:
                     pygame.draw.circle(screen, (255, 255, 255), (cx, cy), 8)

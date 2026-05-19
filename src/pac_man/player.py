@@ -83,11 +83,12 @@ class Player:
 
         self.anim_time += dt
 
-    def draw(self, screen: pygame.SurfaceType) -> None:
+    def draw(self, screen: pygame.SurfaceType, offset_y: int = 0) -> None:
         if self.direction:
             for name, d in DIRECTIONS.items():
                 if d == self.direction:
                     self.last_dir = name
                     break
         idx = int(self.anim_time * 10) % len(self.frames[self.last_dir])
-        screen.blit(self.frames[self.last_dir][idx], (self.px, self.py))
+        frame = self.frames[self.last_dir][idx]
+        screen.blit(frame, (self.px, self.py + offset_y))

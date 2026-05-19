@@ -2,6 +2,7 @@ from typing import Sequence
 
 # Sprite and display constants
 TILE_SIZE = 32  # pixels
+HUD_HEIGHT = 40  # pixels above maze
 PACMAN_SPEED = 5  # tiles per frame
 GHOST_SPEED = 3
 
@@ -18,6 +19,7 @@ STATE_PAUSE = "pause"
 
 __all__: Sequence[str] = [
     "TILE_SIZE",
+    "HUD_HEIGHT",
     "PACMAN_SPEED",
     "GHOST_SPEED",
     "COLOR_BLACK",

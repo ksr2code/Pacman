@@ -1,3 +1,4 @@
+from . import constants as const
 from .config import Config
 from .game import Game
 
@@ -13,9 +14,8 @@ def pacman(cfg_file_path: str) -> None:
 
     pygame.init()
 
-    TILE_SIZE = 32
-    window_width = (cfg.width * 2 + 1) * TILE_SIZE
-    window_height = (cfg.height * 2 + 1) * TILE_SIZE
+    window_width = (cfg.width * 2 + 1) * const.TILE_SIZE
+    window_height = (cfg.height * 2 + 1) * const.TILE_SIZE + const.HUD_HEIGHT
     window = pygame.display.set_mode((window_width, window_height), vsync=1)
     pygame.display.set_caption("Pac-Man")
 

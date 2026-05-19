@@ -1,5 +1,6 @@
 import pygame
 
+from . import constants as const
 from .config import Config
 from .font import Text
 from .maze import Maze
@@ -14,6 +15,7 @@ class Game:
         self.score: int = 0
         self.lives: int = cfg.lives
         self.level_number: int = 1
+        self.hud_offset = const.HUD_HEIGHT
 
         self.maze = Maze(screen, cfg)
         self.player = Player(self.maze)
@@ -21,6 +23,9 @@ class Game:
         self.pacgums = Pacgums(self.maze, {spawn})
 
         self._font = Text()
+        self._life_icon = pygame.transform.scale(
+            self.player.frames["right"][1], (24, 24)
+        )
 
     def handle_event(self, event: pygame.event.Event) -> None:
         if event.type != pygame.KEYDOWN:
@@ -48,19 +53,24 @@ class Game:
             self.score += self.cfg.points_per_super_pacgum
 
     def draw(self) -> None:
-        self.maze.draw()
-        self.pacgums.draw(self.screen)
-        self.player.draw(self.screen)
+        self.maze.draw(self.hud_offset)
+        self.pacgums.draw(self.screen, self.hud_offset)
+        self.player.draw(self.screen, self.hud_offset)
         self._draw_hud()
 
     def _draw_hud(self) -> None:
-        score_surf = self._font.render(f"Score: {self.score}")
-        level_surf = self._font.render(f"Level: {self.level_number}")
-        lives_surf = self._font.render(f"Lives: {self.lives}")
-        self.screen.blit(score_surf, (10, 4))
         screen_w = self.screen.get_width()
+
+        score_surf = self._font.render(f"{self.score}")
+        self.screen.blit(score_surf, (8, 8))
+
+        level_surf = self._font.render(f"Lv.{self.level_number}")
         level_x = (screen_w - level_surf.get_width()) // 2
-        self.screen.blit(level_surf, (level_x, 4))
-        self.screen.blit(
-            lives_surf, (screen_w - lives_surf.get_width() - 10, 4)
-        )
+        self.screen.blit(level_surf, (level_x, 8))
+
+        icon_w = self._life_icon.get_width()
+        start_x = screen_w - (self.lives * (icon_w + 4)) - 4
+        for i in range(self.lives):
+            self.screen.blit(
+                self._life_icon, (start_x + i * (icon_w + 4), 8)
+            )
