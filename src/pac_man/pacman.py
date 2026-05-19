@@ -1,6 +1,5 @@
 from .config import Config
-from .maze import Maze
-from .player import Player
+from .game import Game
 
 import pygame
 import time
@@ -20,8 +19,7 @@ def pacman(cfg_file_path: str) -> None:
     window = pygame.display.set_mode((window_width, window_height), vsync=1)
     pygame.display.set_caption("Pac-Man")
 
-    maze = Maze(window, cfg)
-    player = Player(maze)
+    game = Game(cfg, window)
 
     fps = 60
     frame_cap = 1.0 / fps
@@ -32,16 +30,8 @@ def pacman(cfg_file_path: str) -> None:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
-            elif event.type == pygame.KEYDOWN:
-                key_map = {
-                    pygame.K_UP: "up", pygame.K_w: "up",
-                    pygame.K_DOWN: "down", pygame.K_s: "down",
-                    pygame.K_LEFT: "left", pygame.K_a: "left",
-                    pygame.K_RIGHT: "right", pygame.K_d: "right",
-                }
-                direction = key_map.get(event.key)
-                if direction:
-                    player.set_direction(direction)
+            else:
+                game.handle_event(event)
 
         now = time.perf_counter()
         dt = now - last_time
@@ -49,11 +39,10 @@ def pacman(cfg_file_path: str) -> None:
 
         if dt > frame_cap:
             dt = frame_cap
-        player.update(dt)
+        game.update(dt)
 
         window.fill((0, 0, 0))
-        maze.draw()
-        player.draw(window)
+        game.draw()
         pygame.display.flip()
 
     pygame.quit()

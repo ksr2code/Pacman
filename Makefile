@@ -1,6 +1,6 @@
 .PHONY: install run debug clean lint lint-strict test re
 
-PY_FILES := pac-man.py 
+PY_FILES := pac-man.py $(shell find src -name '*.py' -type f)
 
 GREEN := \033[0;32mOK\033[0m
 RED := \033[0;31mKO\033[0m
