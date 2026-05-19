@@ -2,8 +2,8 @@ from typing import Sequence
 
 # Sprite and display constants
 TILE_SIZE = 32  # pixels
-PACMAN_SPEED = 2  # tiles per frame
-GHOST_SPEED = 1.5
+PACMAN_SPEED = 10  # tiles per frame
+GHOST_SPEED = 5
 
 # Colors (RGB tuples)
 COLOR_BLACK = (0, 0, 0)
