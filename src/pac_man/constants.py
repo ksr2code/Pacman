@@ -4,7 +4,7 @@ from typing import Sequence
 TILE_SIZE = 32  # pixels
 HUD_HEIGHT = 40  # pixels above maze
 PACMAN_SPEED = 5  # tiles per frame
-GHOST_SPEED = 5
+GHOST_SPEED = 3
 
 # Colors (RGB tuples)
 COLOR_BLACK = (0, 0, 0)
@@ -24,6 +24,10 @@ FREIGHT_TIME = 7.0
 
 FREIGHT_SPEED_MULT = 0.5
 SPAWN_SPEED_MULT = 3.0
+LEVEL_COMPLETE_PAUSE = 3.0
+GHOST_SPEED_PER_LEVEL = 0.5
+FREIGHT_TIME_DECREASE = 0.5
+MIN_FREIGHT_TIME = 2.0
 
 STATE_PLAYING = "playing"
 STATE_GAME_OVER = "game_over"
@@ -40,6 +44,10 @@ __all__: Sequence[str] = [
     "INVINCIBLE_TIME",
     "FREIGHT_SPEED_MULT",
     "SPAWN_SPEED_MULT",
+    "LEVEL_COMPLETE_PAUSE",
+    "GHOST_SPEED_PER_LEVEL",
+    "FREIGHT_TIME_DECREASE",
+    "MIN_FREIGHT_TIME",
     "COLOR_BLACK",
     "COLOR_WHITE",
     "COLOR_YELLOW",

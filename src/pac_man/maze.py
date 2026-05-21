@@ -14,8 +14,13 @@ class Maze:
     Maze render class
     """
 
-    def __init__(self, screen: SurfaceType, conf: Config) -> None:
-        self.seed = conf.seed
+    def __init__(
+        self,
+        screen: SurfaceType,
+        conf: Config,
+        seed: int | None = None,
+    ) -> None:
+        self.seed = seed if seed is not None else conf.seed
         self.screen = screen
         self.TILE_SIZE = 32
         try:

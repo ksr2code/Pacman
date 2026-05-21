@@ -15,6 +15,8 @@ GHOST_DEFS = [
     (const.COLOR_ORANGE, "br", "bl"),
 ]
 
+STATE_LEVEL_COMPLETE = "level_complete"
+
 
 class Game:
     def __init__(self, cfg: Config, screen: pygame.SurfaceType) -> None:
@@ -29,11 +31,33 @@ class Game:
         self._pause_timer: float = 0.0
         self._freight_timer: float = 0.0
         self._ghost_points: int = 200
+        self._mode_timer: float = 0.0
+        self._current_mode: str = "scatter"
+        self._current_freight_time: float = const.FREIGHT_TIME
 
-        self.maze = Maze(screen, cfg)
-        self.player = Player(self.maze)
+        self._font = Text()
+        self.maze: Maze = None  # type: ignore[assignment]
+        self.player: Player = None  # type: ignore[assignment]
+        self.pacgums: Pacgums = None  # type: ignore[assignment]
+        self.ghosts: list[Ghost] = []
+        self._player_spawn: tuple[int, int] = (1, 1)
+        self._ghost_spawns: list[tuple[int, int]] = []
+        self._life_icon: pygame.Surface = None  # type: ignore[assignment]
+
+        self._init_level(cfg.seed)
+
+    def _init_level(self, seed: int) -> None:
+        self.maze = Maze(self.screen, self.cfg, seed=seed)
+        if not hasattr(self, 'player') or self.player is None:
+            self.player = Player(self.maze)
+            self._life_icon = pygame.transform.scale(
+                self.player.frames["right"][1], (24, 24)
+            )
+        else:
+            self.player.maze = self.maze
+
         spawn = self.maze.center
-        self._player_spawn: tuple[int, int] = spawn
+        self._player_spawn = spawn
         self.pacgums = Pacgums(self.maze, {spawn})
 
         rows = len(self.maze.out)
@@ -45,22 +69,37 @@ class Game:
             "br": (rows - 1, cols - 1),
         }
 
-        ghost_spawns = self._find_ghost_spawns()
-        self._ghost_spawns = ghost_spawns
-        self.ghosts: list[Ghost] = []
-        for i, (color, _, scatter_key) in enumerate(GHOST_DEFS):
-            r, c = ghost_spawns[i]
-            self.ghosts.append(
-                Ghost(self.maze, r, c, color, corners[scatter_key])
-            )
+        self._ghost_spawns = self._find_ghost_spawns()
+        if not self.ghosts:
+            for i, (color, _, scatter_key) in enumerate(GHOST_DEFS):
+                r, c = self._ghost_spawns[i]
+                self.ghosts.append(
+                    Ghost(self.maze, r, c, color, corners[scatter_key])
+                )
+        else:
+            for i, g in enumerate(self.ghosts):
+                r, c = self._ghost_spawns[i]
+                g.maze = self.maze
+                g.reset(r, c)
+                g.scatter_goal = corners[GHOST_DEFS[i][2]]
 
-        self._mode_timer: float = 0.0
-        self._current_mode: str = "scatter"
-
-        self._font = Text()
-        self._life_icon = pygame.transform.scale(
-            self.player.frames["right"][1], (24, 24)
+        ghost_speed = (
+            (const.GHOST_SPEED + self.level_number
+             * const.GHOST_SPEED_PER_LEVEL) * const.TILE_SIZE
         )
+        for g in self.ghosts:
+            g.set_base_speed(ghost_speed)
+
+        self._current_freight_time = max(
+            const.FREIGHT_TIME
+            - (self.level_number - 1) * const.FREIGHT_TIME_DECREASE,
+            const.MIN_FREIGHT_TIME,
+        )
+
+        self.player.reset(*self._player_spawn)
+        self._mode_timer = 0.0
+        self._current_mode = "scatter"
+        self._freight_timer = 0.0
 
     def handle_event(self, event: pygame.event.Event) -> None:
         if (self.state == const.STATE_GAME_OVER
@@ -80,6 +119,13 @@ class Game:
             self.player.set_direction(direction)
 
     def update(self, dt: float) -> None:
+        if self.state == const.STATE_GAME_OVER:
+            return
+        if self.state == STATE_LEVEL_COMPLETE:
+            self._pause_timer -= dt
+            if self._pause_timer <= 0:
+                self._advance_level()
+            return
         if self.state != const.STATE_PLAYING:
             return
         if self._pause_timer > 0:
@@ -110,9 +156,12 @@ class Game:
         elif kind == "super":
             self.score += self.cfg.points_per_super_pacgum
             self._start_freight()
+        if self.pacgums.remaining == 0:
+            self.state = STATE_LEVEL_COMPLETE
+            self._pause_timer = const.LEVEL_COMPLETE_PAUSE
 
     def _start_freight(self) -> None:
-        self._freight_timer = const.FREIGHT_TIME
+        self._freight_timer = self._current_freight_time
         self._ghost_points = 200
         for g in self.ghosts:
             g.start_freight()
@@ -173,6 +222,12 @@ class Game:
         self._current_mode = "scatter"
         self._freight_timer = 0.0
 
+    def _advance_level(self) -> None:
+        self.level_number += 1
+        new_seed = self.cfg.seed + self.level_number - 1
+        self._init_level(new_seed)
+        self.state = const.STATE_PLAYING
+
     def _restart_game(self) -> None:
         self.score = 0
         self.lives = self.cfg.lives
@@ -181,12 +236,7 @@ class Game:
         self._invincible_timer = 0.0
         self._freight_timer = 0.0
         self._ghost_points = 200
-        self.player.reset(*self._player_spawn)
-        for i, g in enumerate(self.ghosts):
-            g.reset(*self._ghost_spawns[i])
-        self._mode_timer = 0.0
-        self._current_mode = "scatter"
-        self.pacgums = Pacgums(self.maze, {self._player_spawn})
+        self._init_level(self.cfg.seed)
 
     def _find_ghost_spawns(self) -> list[tuple[int, int]]:
         rows = len(self.maze.out)
@@ -215,6 +265,15 @@ class Game:
             x = (screen_w - go_surf.get_width()) // 2
             y = (screen_h - go_surf.get_height()) // 2
             self.screen.blit(go_surf, (x, y))
+        elif self.state == STATE_LEVEL_COMPLETE:
+            screen_w = self.screen.get_width()
+            screen_h = self.screen.get_height()
+            lvl_surf = self._font.render(
+                f"LEVEL {self.level_number} COMPLETE!"
+            )
+            x = (screen_w - lvl_surf.get_width()) // 2
+            y = (screen_h - lvl_surf.get_height()) // 2
+            self.screen.blit(lvl_surf, (x, y))
 
     def _draw_hud(self) -> None:
         screen_w = self.screen.get_width()

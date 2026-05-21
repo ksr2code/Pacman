@@ -42,6 +42,9 @@ class Ghost:
         self.goal: tuple[int, int] = scatter_goal
         self.mode: str = "scatter"
 
+    def set_base_speed(self, speed: float) -> None:
+        self._base_speed = speed
+
     def set_goal(self, row: int, col: int) -> None:
         self.goal = (row, col)
 
