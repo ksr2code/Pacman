@@ -28,10 +28,17 @@ LEVEL_COMPLETE_PAUSE = 3.0
 GHOST_SPEED_PER_LEVEL = 0.5
 FREIGHT_TIME_DECREASE = 0.5
 MIN_FREIGHT_TIME = 2.0
+NUM_LEVELS = 10
 
 STATE_PLAYING = "playing"
 STATE_GAME_OVER = "game_over"
 STATE_PAUSE = "pause"
+STATE_TITLE = "title"
+STATE_WAITING = "waiting"
+STATE_NAME_ENTRY = "name_entry"
+STATE_VICTORY = "victory"
+STATE_HIGHSCORES = "highscores"
+STATE_INSTRUCTIONS = "instructions"
 
 __all__: Sequence[str] = [
     "TILE_SIZE",
@@ -48,6 +55,7 @@ __all__: Sequence[str] = [
     "GHOST_SPEED_PER_LEVEL",
     "FREIGHT_TIME_DECREASE",
     "MIN_FREIGHT_TIME",
+    "NUM_LEVELS",
     "COLOR_BLACK",
     "COLOR_WHITE",
     "COLOR_YELLOW",
@@ -60,4 +68,10 @@ __all__: Sequence[str] = [
     "STATE_PLAYING",
     "STATE_GAME_OVER",
     "STATE_PAUSE",
+    "STATE_TITLE",
+    "STATE_WAITING",
+    "STATE_NAME_ENTRY",
+    "STATE_VICTORY",
+    "STATE_HIGHSCORES",
+    "STATE_INSTRUCTIONS",
 ]

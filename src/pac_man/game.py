@@ -34,6 +34,7 @@ class Game:
         self._mode_timer: float = 0.0
         self._current_mode: str = "scatter"
         self._current_freight_time: float = const.FREIGHT_TIME
+        self._level_timer: float = float(cfg.level_max_time)
 
         self._font = Text()
         self.maze: Maze = None  # type: ignore[assignment]
@@ -100,6 +101,7 @@ class Game:
         self._mode_timer = 0.0
         self._current_mode = "scatter"
         self._freight_timer = 0.0
+        self._level_timer = float(self.cfg.level_max_time)
 
     def handle_event(self, event: pygame.event.Event) -> None:
         if (self.state == const.STATE_GAME_OVER
@@ -132,6 +134,11 @@ class Game:
             self._pause_timer = max(0.0, self._pause_timer - dt)
             return
         self._invincible_timer = max(0.0, self._invincible_timer - dt)
+        self._level_timer -= dt
+        if self._level_timer <= 0:
+            self._level_timer = 0
+            self.state = const.STATE_GAME_OVER
+            return
         if self._freight_timer > 0:
             self._freight_timer = max(0.0, self._freight_timer - dt)
             if self._freight_timer <= 0:
@@ -157,8 +164,11 @@ class Game:
             self.score += self.cfg.points_per_super_pacgum
             self._start_freight()
         if self.pacgums.remaining == 0:
-            self.state = STATE_LEVEL_COMPLETE
-            self._pause_timer = const.LEVEL_COMPLETE_PAUSE
+            if self.level_number >= const.NUM_LEVELS:
+                self.state = const.STATE_VICTORY
+            else:
+                self.state = STATE_LEVEL_COMPLETE
+                self._pause_timer = const.LEVEL_COMPLETE_PAUSE
 
     def _start_freight(self) -> None:
         self._freight_timer = self._current_freight_time
@@ -223,6 +233,9 @@ class Game:
         self._freight_timer = 0.0
 
     def _advance_level(self) -> None:
+        if self.level_number >= const.NUM_LEVELS:
+            self.state = const.STATE_VICTORY
+            return
         self.level_number += 1
         new_seed = self.cfg.seed + self.level_number - 1
         self._init_level(new_seed)
@@ -265,6 +278,13 @@ class Game:
             x = (screen_w - go_surf.get_width()) // 2
             y = (screen_h - go_surf.get_height()) // 2
             self.screen.blit(go_surf, (x, y))
+        elif self.state == const.STATE_VICTORY:
+            screen_w = self.screen.get_width()
+            screen_h = self.screen.get_height()
+            win_surf = self._font.render("YOU WIN!")
+            x = (screen_w - win_surf.get_width()) // 2
+            y = (screen_h - win_surf.get_height()) // 2
+            self.screen.blit(win_surf, (x, y))
         elif self.state == STATE_LEVEL_COMPLETE:
             screen_w = self.screen.get_width()
             screen_h = self.screen.get_height()
@@ -284,6 +304,13 @@ class Game:
         level_surf = self._font.render(f"Lv.{self.level_number}")
         level_x = (screen_w - level_surf.get_width()) // 2
         self.screen.blit(level_surf, (level_x, 8))
+
+        secs = int(self._level_timer)
+        time_surf = self._font.render(
+            f"{secs // 60}:{secs % 60:02d}"
+        )
+        time_x = screen_w // 2 + 50
+        self.screen.blit(time_surf, (time_x, 8))
 
         icon_w = self._life_icon.get_width()
         start_x = screen_w - (self.lives * (icon_w + 4)) - 4
