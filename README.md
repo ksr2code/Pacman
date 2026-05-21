@@ -4,7 +4,7 @@
 
 ## Description
 
-A Pac-Man clone built in Python using Pygame, with procedurally generated mazes, ghost AI, scoring, and highscore persistence. The game is deployed as a WebAssembly build playable in the browser via Itch.io.
+A Pac-Man clone built in Python using Pygame, with procedurally generated mazes, ghost AI (scatter/chase modes, goal-based direction), death/lives system, scoring, and highscore persistence.
 
 ## Instructions
 
@@ -90,15 +90,17 @@ Highscores are stored in a JSON file (path configured via `highscore_filename`).
 - **`config.py`** — Loads JSON config with pydantic validation, comment stripping, value clamping, and default fallbacks.
 - **`maze.py`** — Generates and renders the maze. Provides `is_walkable()` for collision and `center` property (BFS) for spawn point.
 - **`player.py`** — Grid-based movement with direction queuing, sprite rotation for facing direction, and smooth pixel interpolation.
+- **`ghost.py`** — Ghost AI with goal-based direction choosing at intersections, no-U-turn rule, and scatter/chase modes.
 - **`pacgums.py`** — Places pacgums on all walkable corridors, super-pacgums in 4 corners (BFS). Tracks remaining count for level completion.
 - **`highscore.py`** — Persistent JSON highscore storage with name validation, top 10 ranking, and error resilience.
-- **`game.py`** — Game state manager: owns score, lives, level, player, pacgums. Handles events, updates, drawing, and HUD.
+- **`game.py`** — Game state manager: owns score, lives, level, player, ghost, pacgums. Handles events, updates, drawing, HUD, death/lives, invincibility, and game over.
 - **`pacman.py`** — Entry point: loads config, initializes pygame, runs the game loop.
 
 ### Key design decisions
 
 - **Movement**: Grid-based with direction queuing. Player moves continuously until hitting a wall. Queued direction executes at the next valid intersection.
-- **Ghost AI** (planned): Goal-based direction choosing at intersections using Euclidean distance — no A* needed.
+- **Ghost AI**: Goal-based direction choosing at intersections using Euclidean distance. Modes alternate between scatter (7s, targets corner) and chase (20s, targets Pac-Man). Ghosts cannot U-turn.
+- **Death/Lives**: Ghost collision costs a life. 1s pause on death, 1.5s invincibility after reset. Game over at 0 lives with any-key restart.
 - **Collision**: Grid position matching for pacgum eating (tile-based, not circle collision).
 - **Rendering**: Maze is pre-rendered to a surface for fast blitting. Pacgums drawn as circles each frame. HUD is a 40px bar above the maze.
 
@@ -112,6 +114,7 @@ src/pac_man/
 ├── constants.py         → shared constants (tile size, speeds, colors)
 ├── font.py              → Text rendering (PressStart2P font)
 ├── game.py              → Game class (state, update, draw, HUD)
+├── ghost.py             → Ghost AI, goal-based movement, scatter/chase
 ├── highscore.py         → Highscore load/save/validate
 ├── maze.py              → Maze generation, rendering, collision
 ├── pacgums.py           → Pacgum/super-pacgum placement and rendering
@@ -122,7 +125,7 @@ src/pac_man/
 
 ### Class relationships
 
-- `Game` owns `Maze`, `Player`, `Pacgums`, and reads `Config`
+- `Game` owns `Maze`, `Player`, `Ghost`, `Pacgums`, and reads `Config`
 - `Player` references `Maze` for `is_walkable()` and `center`
 - `Pacgums` references `Maze.out` grid for placement
 - `Highscore` is standalone, used by game-over/victory screens (planned)
