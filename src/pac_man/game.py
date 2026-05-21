@@ -37,6 +37,11 @@ class Game:
         self._level_timer: float = float(cfg.level_max_time)
 
         self._font = Text()
+        self._small_font = Text()
+        self._small_font.size = 16
+        self._small_font.font = pygame.font.Font(
+            self._small_font.path, 16
+        )
         self.maze: Maze = None  # type: ignore[assignment]
         self.player: Player = None  # type: ignore[assignment]
         self.pacgums: Pacgums = None  # type: ignore[assignment]
@@ -299,18 +304,20 @@ class Game:
         screen_w = self.screen.get_width()
 
         score_surf = self._font.render(f"{self.score}")
-        self.screen.blit(score_surf, (8, 8))
+        self.screen.blit(score_surf, (8, 4))
 
-        level_surf = self._font.render(f"Lv.{self.level_number}")
-        level_x = (screen_w - level_surf.get_width()) // 2
-        self.screen.blit(level_surf, (level_x, 8))
+        level_surf = self._small_font.render(
+            f"Lv.{self.level_number}"
+        )
+        level_x = screen_w // 2 - level_surf.get_width() - 10
+        self.screen.blit(level_surf, (level_x, 12))
 
         secs = int(self._level_timer)
-        time_surf = self._font.render(
+        time_surf = self._small_font.render(
             f"{secs // 60}:{secs % 60:02d}"
         )
-        time_x = screen_w // 2 + 50
-        self.screen.blit(time_surf, (time_x, 8))
+        time_x = screen_w // 2 + 10
+        self.screen.blit(time_surf, (time_x, 12))
 
         icon_w = self._life_icon.get_width()
         start_x = screen_w - (self.lives * (icon_w + 4)) - 4
