@@ -4,7 +4,7 @@ from typing import Sequence
 TILE_SIZE = 32  # pixels
 HUD_HEIGHT = 40  # pixels above maze
 PACMAN_SPEED = 5  # tiles per frame
-GHOST_SPEED = 3
+GHOST_SPEED = 5
 
 # Colors (RGB tuples)
 COLOR_BLACK = (0, 0, 0)
@@ -12,7 +12,9 @@ COLOR_WHITE = (255, 255, 255)
 COLOR_YELLOW = (255, 255, 0)
 COLOR_RED = (255, 0, 0)
 
-# Game states
+SCATTER_TIME = 7.0
+CHASE_TIME = 20.0
+
 STATE_PLAYING = "playing"
 STATE_GAME_OVER = "game_over"
 STATE_PAUSE = "pause"
@@ -22,6 +24,8 @@ __all__: Sequence[str] = [
     "HUD_HEIGHT",
     "PACMAN_SPEED",
     "GHOST_SPEED",
+    "SCATTER_TIME",
+    "CHASE_TIME",
     "COLOR_BLACK",
     "COLOR_WHITE",
     "COLOR_YELLOW",
