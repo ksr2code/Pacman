@@ -20,6 +20,8 @@ class Game:
         self.state: str = const.STATE_PLAYING
         self._invincible_timer: float = 0.0
         self._pause_timer: float = 0.0
+        self._freight_timer: float = 0.0
+        self._ghost_points: int = 200
 
         self.maze = Maze(screen, cfg)
         self.player = Player(self.maze)
@@ -66,20 +68,40 @@ class Game:
             self._pause_timer = max(0.0, self._pause_timer - dt)
             return
         self._invincible_timer = max(0.0, self._invincible_timer - dt)
+        if self._freight_timer > 0:
+            self._freight_timer = max(0.0, self._freight_timer - dt)
+            if self._freight_timer <= 0:
+                self._end_freight()
         self.player.update(dt)
         self.pacgums.update(dt)
         self._check_eating()
         self._update_mode(dt)
         self._update_ghost_goal()
         self.ghost.update(dt)
+        if (self.ghost.mode == "spawn"
+                and self.ghost.direction is None):
+            self.ghost.go_idle()
         self._check_ghost_collision()
 
     def _check_eating(self) -> None:
-        kind = self.pacgums.eat(self.player.grid_row, self.player.grid_col)
+        kind = self.pacgums.eat(
+            self.player.grid_row, self.player.grid_col
+        )
         if kind == "pacgum":
             self.score += self.cfg.points_per_pacgum
         elif kind == "super":
             self.score += self.cfg.points_per_super_pacgum
+            self._start_freight()
+
+    def _start_freight(self) -> None:
+        self._freight_timer = const.FREIGHT_TIME
+        self._ghost_points = 200
+        self.ghost.start_freight()
+
+    def _end_freight(self) -> None:
+        if (self.ghost.mode != "scatter"
+                and self.ghost.mode != "chase"):
+            self.ghost.go_normal(self._current_mode)
 
     def _update_mode(self, dt: float) -> None:
         self._mode_timer += dt
@@ -102,8 +124,14 @@ class Game:
     def _check_ghost_collision(self) -> None:
         if self._invincible_timer > 0:
             return
-        if (self.ghost.grid_row == self.player.grid_row
+        if not (self.ghost.grid_row == self.player.grid_row
                 and self.ghost.grid_col == self.player.grid_col):
+            return
+        if self.ghost.mode == "freight":
+            self.score += self._ghost_points
+            self._ghost_points *= 2
+            self.ghost.start_spawn()
+        elif self.ghost.mode in ("scatter", "chase"):
             self.lives -= 1
             if self.lives <= 0:
                 self.state = const.STATE_GAME_OVER
@@ -118,6 +146,7 @@ class Game:
         self.ghost.reset(ghost_spawn[0], ghost_spawn[1])
         self._mode_timer = 0.0
         self._current_mode = "scatter"
+        self._freight_timer = 0.0
         cols = len(self.maze.out[0])
         self.ghost.set_goal(0, cols - 1)
 
@@ -127,6 +156,8 @@ class Game:
         self.level_number = 1
         self.state = const.STATE_PLAYING
         self._invincible_timer = 0.0
+        self._freight_timer = 0.0
+        self._ghost_points = 200
         spawn = self._player_spawn
         self.player.reset(spawn[0], spawn[1])
         gs = self._ghost_spawn
