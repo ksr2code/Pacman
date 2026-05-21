@@ -83,6 +83,14 @@ class Player:
 
         self.anim_time += dt
 
+    def reset(self, row: int, col: int) -> None:
+        self.grid_row = row
+        self.grid_col = col
+        self.px = col * const.TILE_SIZE
+        self.py = row * const.TILE_SIZE
+        self.direction = None
+        self.next_direction = None
+
     def draw(self, screen: pygame.SurfaceType, offset_y: int = 0) -> None:
         if self.direction:
             for name, d in DIRECTIONS.items():

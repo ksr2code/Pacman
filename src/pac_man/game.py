@@ -17,13 +17,18 @@ class Game:
         self.lives: int = cfg.lives
         self.level_number: int = 1
         self.hud_offset = const.HUD_HEIGHT
+        self.state: str = const.STATE_PLAYING
+        self._invincible_timer: float = 0.0
+        self._pause_timer: float = 0.0
 
         self.maze = Maze(screen, cfg)
         self.player = Player(self.maze)
         spawn = self.maze.center
+        self._player_spawn: tuple[int, int] = self.maze.center
         self.pacgums = Pacgums(self.maze, {spawn})
 
         ghost_spawn = self._find_ghost_spawn()
+        self._ghost_spawn: tuple[int, int] = ghost_spawn
         self.ghost = Ghost(
             self.maze, ghost_spawn[0], ghost_spawn[1], const.COLOR_RED
         )
@@ -38,6 +43,10 @@ class Game:
         )
 
     def handle_event(self, event: pygame.event.Event) -> None:
+        if (self.state == const.STATE_GAME_OVER
+                and event.type == pygame.KEYDOWN):
+            self._restart_game()
+            return
         if event.type != pygame.KEYDOWN:
             return
         key_map = {
@@ -51,6 +60,12 @@ class Game:
             self.player.set_direction(direction)
 
     def update(self, dt: float) -> None:
+        if self.state != const.STATE_PLAYING:
+            return
+        if self._pause_timer > 0:
+            self._pause_timer = max(0.0, self._pause_timer - dt)
+            return
+        self._invincible_timer = max(0.0, self._invincible_timer - dt)
         self.player.update(dt)
         self.pacgums.update(dt)
         self._check_eating()
@@ -85,9 +100,41 @@ class Game:
             self.ghost.set_goal(self.player.grid_row, self.player.grid_col)
 
     def _check_ghost_collision(self) -> None:
+        if self._invincible_timer > 0:
+            return
         if (self.ghost.grid_row == self.player.grid_row
                 and self.ghost.grid_col == self.player.grid_col):
-            print("Ghost caught Pac-Man!")
+            self.lives -= 1
+            if self.lives <= 0:
+                self.state = const.STATE_GAME_OVER
+            else:
+                self._reset_positions()
+                self._pause_timer = 1.0
+                self._invincible_timer = const.INVINCIBLE_TIME
+
+    def _reset_positions(self) -> None:
+        self.player.reset(*self._player_spawn)
+        ghost_spawn = self._ghost_spawn
+        self.ghost.reset(ghost_spawn[0], ghost_spawn[1])
+        self._mode_timer = 0.0
+        self._current_mode = "scatter"
+        cols = len(self.maze.out[0])
+        self.ghost.set_goal(0, cols - 1)
+
+    def _restart_game(self) -> None:
+        self.score = 0
+        self.lives = self.cfg.lives
+        self.level_number = 1
+        self.state = const.STATE_PLAYING
+        self._invincible_timer = 0.0
+        spawn = self._player_spawn
+        self.player.reset(spawn[0], spawn[1])
+        gs = self._ghost_spawn
+        self.ghost.reset(gs[0], gs[1])
+        self._mode_timer = 0.0
+        self._current_mode = "scatter"
+        self.ghost.set_goal(0, len(self.maze.out[0]) - 1)
+        self.pacgums = Pacgums(self.maze, {spawn})
 
     def _find_ghost_spawn(self) -> tuple[int, int]:
         rows = len(self.maze.out)
@@ -105,6 +152,13 @@ class Game:
         self.player.draw(self.screen, self.hud_offset)
         self.ghost.draw(self.screen, self.hud_offset)
         self._draw_hud()
+        if self.state == const.STATE_GAME_OVER:
+            screen_w = self.screen.get_width()
+            screen_h = self.screen.get_height()
+            go_surf = self._font.render("GAME OVER")
+            x = (screen_w - go_surf.get_width()) // 2
+            y = (screen_h - go_surf.get_height()) // 2
+            self.screen.blit(go_surf, (x, y))
 
     def _draw_hud(self) -> None:
         screen_w = self.screen.get_width()

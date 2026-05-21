@@ -14,6 +14,7 @@ COLOR_RED = (255, 0, 0)
 
 SCATTER_TIME = 7.0
 CHASE_TIME = 20.0
+INVINCIBLE_TIME = 1.5
 
 STATE_PLAYING = "playing"
 STATE_GAME_OVER = "game_over"
@@ -26,6 +27,7 @@ __all__: Sequence[str] = [
     "GHOST_SPEED",
     "SCATTER_TIME",
     "CHASE_TIME",
+    "INVINCIBLE_TIME",
     "COLOR_BLACK",
     "COLOR_WHITE",
     "COLOR_YELLOW",

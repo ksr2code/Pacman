@@ -100,6 +100,14 @@ class Ghost:
             self.px += (dx / dist) * move
             self.py += (dy / dist) * move
 
+    def reset(self, row: int, col: int) -> None:
+        self.grid_row = row
+        self.grid_col = col
+        self.px = col * const.TILE_SIZE
+        self.py = row * const.TILE_SIZE
+        self.direction = None
+        self.mode = "scatter"
+
     def draw(
         self, screen: pygame.SurfaceType, offset_y: int = 0
     ) -> None:
