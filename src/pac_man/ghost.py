@@ -1,6 +1,7 @@
 import math
 import random
 import pygame
+from collections import deque
 
 from . import constants as const
 from .maze import Maze
@@ -91,6 +92,33 @@ class Ghost:
             return None
         return random.choice(options)
 
+    def _bfs_distance(
+        self, sr: int, sc: int
+    ) -> float | int:
+        if (sr, sc) == self.goal:
+            return 0
+        rows = len(self.maze.out)
+        cols = len(self.maze.out[0])
+        visited: set[tuple[int, int]] = {(sr, sc)}
+        queue: deque[tuple[int, int, int]] = deque(
+            [(sr, sc, 0)]
+        )
+        while queue:
+            r, c, d = queue.popleft()
+            for dr, dc in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
+                nr, nc = r + dr, c + dc
+                if (nr, nc) in visited:
+                    continue
+                if not (0 <= nr < rows and 0 <= nc < cols):
+                    continue
+                if not self.maze.is_walkable(nr, nc):
+                    continue
+                if (nr, nc) == self.goal:
+                    return d + 1
+                visited.add((nr, nc))
+                queue.append((nr, nc, d + 1))
+        return float("inf")
+
     def _choose_direction(self) -> tuple[int, int] | None:
         if self.mode == "idle":
             return None
@@ -110,7 +138,12 @@ class Ghost:
         for dr, dc in options:
             nr = self.grid_row + dr
             nc = self.grid_col + dc
-            dist = math.hypot(nr - self.goal[0], nc - self.goal[1])
+            if self.mode == "spawn":
+                dist = self._bfs_distance(nr, nc)
+            else:
+                dist = math.hypot(
+                    nr - self.goal[0], nc - self.goal[1]
+                )
             if dist < best_dist:
                 best_dist = dist
                 best = (dr, dc)

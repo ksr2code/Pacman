@@ -49,11 +49,14 @@ class TestGhostSpawnMode:
         self.ghost.start_spawn()
         assert self.ghost.goal == (1, 1)
 
-    def test_spawn_uses_goal_based(self):
+    def test_spawn_uses_bfs_path(self):
+        walkable = {(4, 5), (3, 5), (2, 5), (1, 5), (0, 5),
+                    (6, 5)}
         self.maze.is_walkable.side_effect = lambda r, c: (
             r, c
-        ) in [(4, 5), (6, 5)]
-        self.ghost._home = (0, 0)
+        ) in walkable
+        self.maze.out = [[None] * 6 for _ in range(7)]
+        self.ghost._home = (0, 5)
         self.ghost.start_spawn()
         direction = self.ghost._choose_direction()
         assert direction == (-1, 0)

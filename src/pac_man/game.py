@@ -115,6 +115,8 @@ class Game:
             self._mode_timer = 0.0
 
     def _update_ghost_goal(self) -> None:
+        if self.ghost.mode in ("freight", "spawn", "idle"):
+            return
         if self._current_mode == "scatter":
             cols = len(self.maze.out[0])
             self.ghost.set_goal(0, cols - 1)
