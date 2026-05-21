@@ -3,10 +3,17 @@ import pygame
 from . import constants as const
 from .config import Config
 from .font import Text
-from .maze import Maze
 from .ghost import Ghost
+from .maze import Maze
 from .pacgums import Pacgums
 from .player import Player
+
+GHOST_DEFS = [
+    (const.COLOR_RED, "tl", "tr"),
+    (const.COLOR_PINK, "tr", "tl"),
+    (const.COLOR_TEAL, "bl", "br"),
+    (const.COLOR_ORANGE, "br", "bl"),
+]
 
 
 class Game:
@@ -26,18 +33,29 @@ class Game:
         self.maze = Maze(screen, cfg)
         self.player = Player(self.maze)
         spawn = self.maze.center
-        self._player_spawn: tuple[int, int] = self.maze.center
+        self._player_spawn: tuple[int, int] = spawn
         self.pacgums = Pacgums(self.maze, {spawn})
 
-        ghost_spawn = self._find_ghost_spawn()
-        self._ghost_spawn: tuple[int, int] = ghost_spawn
-        self.ghost = Ghost(
-            self.maze, ghost_spawn[0], ghost_spawn[1], const.COLOR_RED
-        )
+        rows = len(self.maze.out)
+        cols = len(self.maze.out[0])
+        corners: dict[str, tuple[int, int]] = {
+            "tl": (0, 0),
+            "tr": (0, cols - 1),
+            "bl": (rows - 1, 0),
+            "br": (rows - 1, cols - 1),
+        }
+
+        ghost_spawns = self._find_ghost_spawns()
+        self._ghost_spawns = ghost_spawns
+        self.ghosts: list[Ghost] = []
+        for i, (color, _, scatter_key) in enumerate(GHOST_DEFS):
+            r, c = ghost_spawns[i]
+            self.ghosts.append(
+                Ghost(self.maze, r, c, color, corners[scatter_key])
+            )
+
         self._mode_timer: float = 0.0
         self._current_mode: str = "scatter"
-        cols = len(self.maze.out[0])
-        self.ghost.set_goal(0, cols - 1)
 
         self._font = Text()
         self._life_icon = pygame.transform.scale(
@@ -76,11 +94,11 @@ class Game:
         self.pacgums.update(dt)
         self._check_eating()
         self._update_mode(dt)
-        self._update_ghost_goal()
-        self.ghost.update(dt)
-        if (self.ghost.mode == "spawn"
-                and self.ghost.direction is None):
-            self.ghost.go_idle()
+        self._update_ghost_goals()
+        for g in self.ghosts:
+            g.update(dt)
+            if g.mode == "spawn" and g.direction is None:
+                g.go_idle()
         self._check_ghost_collision()
 
     def _check_eating(self) -> None:
@@ -96,12 +114,13 @@ class Game:
     def _start_freight(self) -> None:
         self._freight_timer = const.FREIGHT_TIME
         self._ghost_points = 200
-        self.ghost.start_freight()
+        for g in self.ghosts:
+            g.start_freight()
 
     def _end_freight(self) -> None:
-        if (self.ghost.mode != "scatter"
-                and self.ghost.mode != "chase"):
-            self.ghost.go_normal(self._current_mode)
+        for g in self.ghosts:
+            if g.mode not in ("scatter", "chase"):
+                g.go_normal(self._current_mode)
 
     def _update_mode(self, dt: float) -> None:
         self._mode_timer += dt
@@ -114,43 +133,45 @@ class Game:
             self._current_mode = "scatter"
             self._mode_timer = 0.0
 
-    def _update_ghost_goal(self) -> None:
-        if self.ghost.mode in ("freight", "spawn", "idle"):
-            return
-        if self._current_mode == "scatter":
-            cols = len(self.maze.out[0])
-            self.ghost.set_goal(0, cols - 1)
-        else:
-            self.ghost.set_goal(self.player.grid_row, self.player.grid_col)
+    def _update_ghost_goals(self) -> None:
+        pr = self.player.grid_row
+        pc = self.player.grid_col
+        for g in self.ghosts:
+            if g.mode in ("freight", "spawn", "idle"):
+                continue
+            if self._current_mode == "scatter":
+                g.set_goal(*g.scatter_goal)
+            else:
+                g.set_goal(pr, pc)
 
     def _check_ghost_collision(self) -> None:
         if self._invincible_timer > 0:
             return
-        if not (self.ghost.grid_row == self.player.grid_row
-                and self.ghost.grid_col == self.player.grid_col):
-            return
-        if self.ghost.mode == "freight":
-            self.score += self._ghost_points
-            self._ghost_points *= 2
-            self.ghost.start_spawn()
-        elif self.ghost.mode in ("scatter", "chase"):
-            self.lives -= 1
-            if self.lives <= 0:
-                self.state = const.STATE_GAME_OVER
-            else:
-                self._reset_positions()
-                self._pause_timer = 1.0
-                self._invincible_timer = const.INVINCIBLE_TIME
+        for g in self.ghosts:
+            if not (g.grid_row == self.player.grid_row
+                    and g.grid_col == self.player.grid_col):
+                continue
+            if g.mode == "freight":
+                self.score += self._ghost_points
+                self._ghost_points *= 2
+                g.start_spawn()
+            elif g.mode in ("scatter", "chase"):
+                self.lives -= 1
+                if self.lives <= 0:
+                    self.state = const.STATE_GAME_OVER
+                else:
+                    self._reset_positions()
+                    self._pause_timer = 1.0
+                    self._invincible_timer = const.INVINCIBLE_TIME
+                return
 
     def _reset_positions(self) -> None:
         self.player.reset(*self._player_spawn)
-        ghost_spawn = self._ghost_spawn
-        self.ghost.reset(ghost_spawn[0], ghost_spawn[1])
+        for i, g in enumerate(self.ghosts):
+            g.reset(*self._ghost_spawns[i])
         self._mode_timer = 0.0
         self._current_mode = "scatter"
         self._freight_timer = 0.0
-        cols = len(self.maze.out[0])
-        self.ghost.set_goal(0, cols - 1)
 
     def _restart_game(self) -> None:
         self.score = 0
@@ -160,30 +181,32 @@ class Game:
         self._invincible_timer = 0.0
         self._freight_timer = 0.0
         self._ghost_points = 200
-        spawn = self._player_spawn
-        self.player.reset(spawn[0], spawn[1])
-        gs = self._ghost_spawn
-        self.ghost.reset(gs[0], gs[1])
+        self.player.reset(*self._player_spawn)
+        for i, g in enumerate(self.ghosts):
+            g.reset(*self._ghost_spawns[i])
         self._mode_timer = 0.0
         self._current_mode = "scatter"
-        self.ghost.set_goal(0, len(self.maze.out[0]) - 1)
-        self.pacgums = Pacgums(self.maze, {spawn})
+        self.pacgums = Pacgums(self.maze, {self._player_spawn})
 
-    def _find_ghost_spawn(self) -> tuple[int, int]:
+    def _find_ghost_spawns(self) -> list[tuple[int, int]]:
         rows = len(self.maze.out)
         cols = len(self.maze.out[0])
-        for r in range(1, rows // 2 + 1):
-            for c in range(1, cols // 2 + 1):
-                if (r % 2 == 1 and c % 2 == 1
-                        and self.maze.is_walkable(r, c)):
-                    return (r, c)
-        return (1, 1)
+        corners = [
+            (1, 1),
+            (1, cols - 2),
+            (rows - 2, 1),
+            (rows - 2, cols - 2),
+        ]
+        return [
+            self.maze.nearest_cell(r, c) for r, c in corners
+        ]
 
     def draw(self) -> None:
         self.maze.draw(self.hud_offset)
         self.pacgums.draw(self.screen, self.hud_offset)
         self.player.draw(self.screen, self.hud_offset)
-        self.ghost.draw(self.screen, self.hud_offset)
+        for g in self.ghosts:
+            g.draw(self.screen, self.hud_offset)
         self._draw_hud()
         if self.state == const.STATE_GAME_OVER:
             screen_w = self.screen.get_width()

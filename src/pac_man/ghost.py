@@ -22,9 +22,11 @@ class Ghost:
         row: int,
         col: int,
         color: tuple[int, int, int],
+        scatter_goal: tuple[int, int] = (0, 0),
     ) -> None:
         self.maze = maze
         self.color = color
+        self.scatter_goal = scatter_goal
         self._base_speed: float = (
             const.GHOST_SPEED * const.TILE_SIZE
         )
@@ -37,7 +39,7 @@ class Ghost:
         self.py: float = row * const.TILE_SIZE
 
         self.direction: tuple[int, int] | None = None
-        self.goal: tuple[int, int] = (0, 0)
+        self.goal: tuple[int, int] = scatter_goal
         self.mode: str = "scatter"
 
     def set_goal(self, row: int, col: int) -> None:

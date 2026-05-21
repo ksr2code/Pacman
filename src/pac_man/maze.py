@@ -119,12 +119,11 @@ class Maze:
             return False
         return self.out[row][col] is None
 
-    @property
-    def center(self) -> tuple[int, int]:
-        """Return nearest reachable maze cell to the geometric center."""
+    def nearest_cell(self, r0: int, c0: int) -> tuple[int, int]:
+        """Return nearest reachable odd-indexed cell with exits."""
         rows = len(self.out)
         cols = len(self.out[0])
-        start = (rows // 2 | 1, cols // 2 | 1)
+        start = (r0 | 1, c0 | 1)
         visited: set[tuple[int, int]] = set()
         queue: list[tuple[int, int]] = [start]
         while queue:
@@ -145,3 +144,10 @@ class Maze:
                     if (nr, nc) not in visited:
                         queue.append((nr, nc))
         return start
+
+    @property
+    def center(self) -> tuple[int, int]:
+        """Return nearest reachable maze cell to the geometric center."""
+        rows = len(self.out)
+        cols = len(self.out[0])
+        return self.nearest_cell(rows // 2, cols // 2)
