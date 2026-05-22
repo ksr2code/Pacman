@@ -109,12 +109,15 @@ class Game:
         self._level_timer = float(self.cfg.level_max_time)
 
     def handle_event(self, event: pygame.event.Event) -> None:
-        if (self.state == const.STATE_GAME_OVER
-                and event.type == pygame.KEYDOWN):
-            self._restart_game()
-            return
         if event.type != pygame.KEYDOWN:
             return
+        if event.key == pygame.K_SPACE:
+            if self.state == const.STATE_PLAYING:
+                self.state = const.STATE_PAUSE
+                return
+            elif self.state == const.STATE_PAUSE:
+                self.state = const.STATE_PLAYING
+                return
         key_map = {
             pygame.K_UP: "up", pygame.K_w: "up",
             pygame.K_DOWN: "down", pygame.K_s: "down",
@@ -276,29 +279,6 @@ class Game:
         for g in self.ghosts:
             g.draw(self.screen, self.hud_offset)
         self._draw_hud()
-        if self.state == const.STATE_GAME_OVER:
-            screen_w = self.screen.get_width()
-            screen_h = self.screen.get_height()
-            go_surf = self._font.render("GAME OVER")
-            x = (screen_w - go_surf.get_width()) // 2
-            y = (screen_h - go_surf.get_height()) // 2
-            self.screen.blit(go_surf, (x, y))
-        elif self.state == const.STATE_VICTORY:
-            screen_w = self.screen.get_width()
-            screen_h = self.screen.get_height()
-            win_surf = self._font.render("YOU WIN!")
-            x = (screen_w - win_surf.get_width()) // 2
-            y = (screen_h - win_surf.get_height()) // 2
-            self.screen.blit(win_surf, (x, y))
-        elif self.state == STATE_LEVEL_COMPLETE:
-            screen_w = self.screen.get_width()
-            screen_h = self.screen.get_height()
-            lvl_surf = self._font.render(
-                f"LEVEL {self.level_number} COMPLETE!"
-            )
-            x = (screen_w - lvl_surf.get_width()) // 2
-            y = (screen_h - lvl_surf.get_height()) // 2
-            self.screen.blit(lvl_surf, (x, y))
 
     def _draw_hud(self) -> None:
         screen_w = self.screen.get_width()
