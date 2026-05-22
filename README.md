@@ -4,41 +4,26 @@
 
 ## Description
 
-A Pac-Man clone built in Python using Pygame, with procedurally generated mazes, ghost AI (scatter/chase modes, goal-based direction), death/lives system, scoring, and highscore persistence.
+A Pac-Man clone built in Python with Pygame. Features procedurally generated mazes, 4 ghosts with scatter/chase/freight/spawn/idle modes, BFS pathfinding, level timer, 10-level progression with increasing difficulty, screen-based state machine (title, pause, game over, victory, name entry), and persistent highscore system.
 
 ## Instructions
 
-### Install dependencies
-
 ```bash
-make install
-```
-
-### Run the game
-
-```bash
-make run
-# or directly:
-python3 pac-man.py config.json
-```
-
-### Other commands
-
-```bash
+make install     # install dependencies
+make run         # run the game
 make lint        # flake8 + mypy
 make debug       # run with pdb
 make clean       # remove caches
 ```
 
-### Packaging for Itch.io
+Or directly: `python3 pac-man.py config.json`
 
-Pygbag compiles the game to WebAssembly for browser play:
+### Packaging for Itch.io
 
 ```bash
 make build
+python3 -m http.server 8000 --directory build/web
 ```
-
-Serve locally: `python3 -m http.server 8000 --directory build/web`
 
 ## Resources
 
@@ -46,90 +31,77 @@ Serve locally: `python3 -m http.server 8000 --directory build/web`
 
 ## Configuration
 
-The game is configured via a JSON file passed as a command-line argument:
+JSON config file with `#` and `//` comment support. Missing keys use defaults, invalid values are clamped, unknown keys ignored.
 
-```bash
-python3 pac-man.py config.json
-```
-
-The config file supports standard JSON with comment lines starting with `#` or `//`.
-
-| Key | Type | Default | Description |
-|-----|------|---------|-------------|
-| `highscore_filename` | string | `"highscore.json"` | Path to highscore file |
-| `width` | int | `14` | Maze width (min 5) |
-| `height` | int | `18` | Maze height (min 5) |
-| `lives` | int | `3` | Starting lives (min 1) |
-| `pacgum` | int | `42` | Pacgum count |
-| `points_per_pacgum` | int | `10` | Points per pacgum (min 1) |
-| `points_per_super_pacgum` | int | `50` | Points per super-pacgum (min 1) |
-| `points_per_ghost` | int | `200` | Points per eaten ghost (min 1) |
-| `seed` | int | `42` | Base seed for level 1 maze |
-| `level_max_time` | int | `90` | Seconds per level (min 10) |
-
-- Missing keys fall back to defaults.
-- Invalid values are clamped to safe minimums.
-- Unknown keys are silently ignored.
-- Levels are infinite — each level uses `seed + level_index` for maze generation.
+| Key | Default | Description |
+|-----|---------|-------------|
+| `highscore_filename` | `"highscore.json"` | Highscore file path |
+| `width` | `14` | Maze width (min 5) |
+| `height` | `18` | Maze height (min 5) |
+| `lives` | `3` | Starting lives (min 1) |
+| `points_per_pacgum` | `10` | Points per pacgum (min 1) |
+| `points_per_super_pacgum` | `50` | Points per super-pacgum (min 1) |
+| `seed` | `42` | Base seed for level 1 |
+| `level_max_time` | `90` | Seconds per level (min 10) |
 
 ## Highscore
 
-Highscores are stored in a JSON file (path configured via `highscore_filename`). The system keeps the top 10 entries sorted by score (descending).
-
-- Player names: max 10 characters, alphanumeric and spaces only.
-- Scores: non-negative integers.
-- Missing or corrupt files are handled gracefully — the list resets to empty.
-- Highscores are loaded at game start and saved when a new entry is added.
+Persistent JSON storage — top 10 entries sorted by score. Player names: max 10 chars, alphanumeric + spaces. Displayed on title screen (top 3 preview) and dedicated highscores screen (full top 10). Name entry after game over or victory.
 
 ## Maze Generation
 
+Uses the `mazegenerator` package (A-Maze-ing, `PERFECT=False`). The `out` grid uses odd-odd indices for cell centers and even indices for walls/passages. BFS finds the nearest reachable cell for player spawn (`maze.center`) and ghost spawns (4 corners via `maze.nearest_cell`).
+
 ## Implementation
 
-### Core modules
+### Modules
 
-- **`config.py`** — Loads JSON config with pydantic validation, comment stripping, value clamping, and default fallbacks.
-- **`maze.py`** — Generates and renders the maze. Provides `is_walkable()` for collision and `center` property (BFS) for spawn point.
-- **`player.py`** — Grid-based movement with direction queuing, sprite rotation for facing direction, and smooth pixel interpolation.
-- **`ghost.py`** — Ghost AI with goal-based direction choosing at intersections, no-U-turn rule, and scatter/chase modes.
-- **`pacgums.py`** — Places pacgums on all walkable corridors, super-pacgums in 4 corners (BFS). Tracks remaining count for level completion.
-- **`highscore.py`** — Persistent JSON highscore storage with name validation, top 10 ranking, and error resilience.
-- **`game.py`** — Game state manager: owns score, lives, level, player, ghost, pacgums. Handles events, updates, drawing, HUD, death/lives, invincibility, and game over.
-- **`pacman.py`** — Entry point: loads config, initializes pygame, runs the game loop.
+- **`config.py`** — Pydantic-validated JSON config with comment stripping and value clamping
+- **`maze.py`** — Maze generation, pre-rendered surface, `is_walkable()`, `nearest_cell()` (BFS), `center` property
+- **`player.py`** — Grid movement with direction queuing, sprite rotation, smooth interpolation
+- **`ghost.py`** — 4 ghosts with goal-based AI (Euclidean for scatter/chase, BFS for spawn), no-U-turn rule, 5 modes (scatter/chase/freight/spawn/idle), per-ghost scatter corners, level-based speed scaling
+- **`pacgums.py`** — Placement on corridors, super-pacgums via BFS from 4 corners, blink animation
+- **`game.py`** — Gameplay logic: score, lives, level timer, ghost collision, freight/spawn/idle management, mode timer, level progression with 10-level cap
+- **`screens.py`** — Screen ABC + 8 screen classes (title, waiting, pause, game over, victory, name entry, highscores, instructions)
+- **`pacman.py`** — App class routes events/updates/draws to current screen
+- **`highscore.py`** — Load/save JSON, top 10, name validation, error resilience
+- **`font.py`** / **`sprites.py`** — PressStart2P font rendering, spritesheet loader
 
-### Key design decisions
+### Key decisions
 
-- **Movement**: Grid-based with direction queuing. Player moves continuously until hitting a wall. Queued direction executes at the next valid intersection.
-- **Ghost AI**: Goal-based direction choosing at intersections using Euclidean distance. Modes alternate between scatter (7s, targets corner) and chase (20s, targets Pac-Man). Ghosts cannot U-turn.
-- **Death/Lives**: Ghost collision costs a life. 1s pause on death, 1.5s invincibility after reset. Game over at 0 lives with any-key restart.
-- **Collision**: Grid position matching for pacgum eating (tile-based, not circle collision).
-- **Rendering**: Maze is pre-rendered to a surface for fast blitting. Pacgums drawn as circles each frame. HUD is a 40px bar above the maze.
+- **Screen pattern**: `Screen` ABC with `handle_event()`/`update()` returning `str | None` for state transitions. `App` class acts as router.
+- **Ghost AI**: Scatter (7s, corner) / chase (20s, Pac-Man) alternates on global timer. Freight: slow + random. Spawn: fast + BFS home. Idle: wait for freight expiry.
+- **Level progression**: 10 levels, each with `seed + level - 1`. Ghost speed +0.5/level, freight time -0.5s/level (min 2s). Timer expires = game over.
+- **Movement**: Grid-based with direction queue. Continuous until wall hit. Collision is tile-based.
 
 ## General Software Architecture
 
 ```
-pac-man.py              → entry point
+pac-man.py                  → entry point
 src/pac_man/
-├── __init__.py          → package init
-├── config.py            → ConfigData (pydantic) + Config wrapper
-├── constants.py         → shared constants (tile size, speeds, colors)
-├── font.py              → Text rendering (PressStart2P font)
-├── game.py              → Game class (state, update, draw, HUD)
-├── ghost.py             → Ghost AI, goal-based movement, scatter/chase
-├── highscore.py         → Highscore load/save/validate
-├── maze.py              → Maze generation, rendering, collision
-├── pacgums.py           → Pacgum/super-pacgum placement and rendering
-├── pacman.py            → Main game loop
-├── player.py            → Player movement, animation, direction queue
-└── sprites.py           → Spritesheet loader
+├── __init__.py              → package init, main()
+├── config.py                → ConfigData (pydantic) + Config
+├── constants.py             → tile size, speeds, colors, states
+├── font.py                  → Text (PressStart2P)
+├── game.py                  → Game (gameplay state + logic)
+├── ghost.py                 → Ghost AI, 5 modes, BFS pathfinding
+├── highscore.py             → Highscore load/save/validate
+├── maze.py                  → Maze generation + rendering
+├── pacgums.py               → Pacgum placement + drawing
+├── pacman.py                → App (screen router) + main loop
+├── player.py                → Player movement + animation
+├── screens.py               → Screen ABC + 8 UI screens
+└── sprites.py               → Spritesheet loader
 ```
 
 ### Class relationships
 
-- `Game` owns `Maze`, `Player`, `Ghost`, `Pacgums`, and reads `Config`
-- `Player` references `Maze` for `is_walkable()` and `center`
-- `Pacgums` references `Maze.out` grid for placement
-- `Highscore` is standalone, used by game-over/victory screens (planned)
+- `App` owns `Config`, `Highscore`, current `Screen`, and `Game`
+- `App` routes events/updates/draws to the active `Screen` subclass
+- `Game` owns `Maze`, `Player`, 4 `Ghost` instances, `Pacgums`
+- `Player`/`Ghost` reference `Maze` for `is_walkable()`
+- `Highscore` is standalone, used by `NameEntryScreen` and `TitleScreen`
 
 ## Project Management
 
-Project management documents are available in the `docs/` directory (planned).
+Project management documents are in the `docs/` directory.
