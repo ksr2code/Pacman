@@ -12,11 +12,13 @@ RED := \033[0;31mKO\033[0m
 
 
 install:
-	UV_SKIP_WHEEL_FILENAME_CHECK=1 uv sync --python 3.10 --all-extras
+	UV_SKIP_WHEEL_FILENAME_CHECK=1 uv sync --python 3.12 --all-extras
+	uv tool install --upgrade pygbag
 
 # use this to create the WebAssembly for itch.io
 build:
-	UV_SKIP_WHEEL_FILENAME_CHECK=1 uv run pygbag --disable-sound-format-error --no_opt pac-man.py
+# 	UV_SKIP_WHEEL_FILENAME_CHECK=1 uv run pygbag --disable-sound-format-error --no_opt pac-man.py
+	pygbag --disable-sound-format-error --no_opt --cdn https://pygame-web.github.io/archives/0.8/ --build --html pac-man.py
 
 run:
 	UV_SKIP_WHEEL_FILENAME_CHECK=1 uv run pac-man.py $(ARGS)

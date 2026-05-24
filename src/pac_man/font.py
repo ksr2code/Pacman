@@ -12,7 +12,7 @@ class Text:
     def set_path(self, path: str | None = None) -> str | None:
         if path is None:
             path = os.path.join(
-                os.path.dirname(__file__),
+                os.path.dirname(os.path.abspath(__file__)),
                 "../../assets/fonts/PressStart2P-Regular.ttf",
             )
         self.path = path

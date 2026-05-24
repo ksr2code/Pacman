@@ -146,7 +146,7 @@ class _GameScreen(Screen):
     def draw(self) -> None:
         self.game.draw()
 
-
+# TODO this might have to be ASYNC because of pygbag
 def pacman(cfg_file_path: str) -> None:
     cfg = Config()
     if not cfg.read(cfg_file_path):
