@@ -35,12 +35,12 @@ class App:
         self.small_font.font = pygame.font.Font(
             self.small_font.path, 16
         )
+        self.sound: Sound = Sound("start.ogg")
         self.highscore = Highscore(cfg.highscore_filename)
         self.highscore.load()
         self.game: Game = None  # type: ignore[assignment]
         self._screen: Screen = None  # type: ignore[assignment]
         self._state: str = const.STATE_TITLE
-        self.sound: Sound = Sound()
         self._transition(const.STATE_TITLE)
 
     def _transition(self, new_state: str) -> None:
@@ -49,7 +49,6 @@ class App:
                 self.screen, self.font,
                 self.small_font, self.highscore,
             )
-            self.sound.load("start.ogg")
             self.sound.play()
         elif new_state == const.STATE_WAITING:
             if self.game is None:

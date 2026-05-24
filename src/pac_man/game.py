@@ -168,6 +168,7 @@ class Game:
         )
         if kind == "pacgum":
             self.score += self.cfg.points_per_pacgum
+            self.pacgums.eat_sound()
         elif kind == "super":
             self.score += self.cfg.points_per_super_pacgum
             self._start_freight()

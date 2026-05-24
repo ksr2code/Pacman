@@ -2,6 +2,7 @@ import pygame
 
 from . import constants as const
 from .maze import Maze
+from .sound import Sound
 
 
 class Pacgums:
@@ -9,6 +10,7 @@ class Pacgums:
         self.pacgums: dict[tuple[int, int], str] = {}
         self._blink_timer: float = 0.0
         self._blink_visible: bool = True
+        self.sound = Sound("eat_dot_0.ogg")
         rows = len(maze.out)
         cols = len(maze.out[0])
         for r in range(1, rows, 2):
@@ -61,6 +63,9 @@ class Pacgums:
 
     def eat(self, row: int, col: int) -> str | None:
         return self.pacgums.pop((row, col), None)
+
+    def eat_sound(self):
+        self.sound.play()
 
     @property
     def remaining(self) -> int:
