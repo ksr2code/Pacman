@@ -1,4 +1,9 @@
-.PHONY: install run debug clean lint lint-strict test re
+.PHONY: install run debug clean lint lint-strict test re push
+
+ifneq (,$(wildcard ./.env))
+    include .env
+    export
+endif
 
 PY_FILES := pac-man.py $(shell find src -name '*.py' -type f)
 
@@ -7,7 +12,7 @@ RED := \033[0;31mKO\033[0m
 
 
 install:
-	UV_SKIP_WHEEL_FILENAME_CHECK=1 uv sync --python 3.10
+	UV_SKIP_WHEEL_FILENAME_CHECK=1 uv sync --python 3.10 --all-extras
 
 # use this to create the WebAssembly for itch.io
 build:
@@ -54,3 +59,7 @@ lint-strict:
 		--exclude '(^\.venv/)'
 
 re: clean install
+
+# push the build to itch.io
+push:build
+	BUTLER_API_KEY=$(BUTLER_API_KEY) butler/butler push ./build/web 42-HN-DreamTeam/pac-man:web
