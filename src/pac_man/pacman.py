@@ -126,6 +126,9 @@ class App:
         elif s == STATE_LEVEL_COMPLETE:
             if self._state != STATE_LEVEL_COMPLETE:
                 self._state = STATE_LEVEL_COMPLETE
+        elif s == const.STATE_PLAYING:
+            if self._state == STATE_LEVEL_COMPLETE:
+                self._transition(const.STATE_PLAYING)
 
     def draw(self) -> None:
         self._screen.draw()
