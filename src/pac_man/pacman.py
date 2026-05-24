@@ -7,6 +7,7 @@ from .config import Config
 from .font import Text
 from .game import Game
 from .highscore import Highscore
+from .sound import Sound
 from .screens import (
     GameOverScreen,
     HighscoresScreen,
@@ -39,6 +40,7 @@ class App:
         self.game: Game = None  # type: ignore[assignment]
         self._screen: Screen = None  # type: ignore[assignment]
         self._state: str = const.STATE_TITLE
+        self.sound: Sound = Sound()
         self._transition(const.STATE_TITLE)
 
     def _transition(self, new_state: str) -> None:
@@ -47,6 +49,8 @@ class App:
                 self.screen, self.font,
                 self.small_font, self.highscore,
             )
+            self.sound.load("start.ogg")
+            self.sound.play()
         elif new_state == const.STATE_WAITING:
             if self.game is None:
                 self.game = Game(self.cfg, self.screen)
