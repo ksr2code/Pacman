@@ -342,8 +342,8 @@ class Game:
     def _draw_hud(self) -> None:
         screen_w = self.screen.get_width()
 
-        score_surf = self._font.render(f"{self.score}")
-        self.screen.blit(score_surf, (8, 4))
+        score_surf = self._small_font.render(f"{self.score}")
+        self.screen.blit(score_surf, (8, 12))
 
         level_surf = self._small_font.render(
             f"Lv.{self.level_number}"
@@ -365,5 +365,7 @@ class Game:
                 self._life_icon, (start_x + i * (icon_w + 4), 8)
             )
         if self.cfg.cheat:
-            cs = self._small_font.render("CHEAT MODE")
-            self.screen.blit(cs, (8, 22))
+            cs = self._small_font.render("cheat mode")
+            self.screen.blit(
+                cs, (score_surf.get_width() + 16, 12)
+            )
