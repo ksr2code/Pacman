@@ -118,6 +118,9 @@ class Game:
         self._current_mode = "scatter"
         self._freight_timer = 0.0
         self._level_timer = float(self.cfg.level_max_time)
+        if self.cheats.always_fright:
+            for g in self.ghosts:
+                g.start_freight()
 
     def handle_event(self, event: pygame.event.Event) -> None:
         if event.type != pygame.KEYDOWN:
@@ -129,6 +132,9 @@ class Game:
             elif self.state == const.STATE_PAUSE:
                 self.state = const.STATE_PLAYING
                 return
+        if event.key == pygame.K_c and self.cfg.cheat:
+            self.state = const.STATE_CHEAT_MENU
+            return
         key_map = {
             pygame.K_UP: "up", pygame.K_w: "up",
             pygame.K_DOWN: "down", pygame.K_s: "down",
@@ -162,15 +168,24 @@ class Game:
             self._freight_timer = max(0.0, self._freight_timer - dt)
             if self._freight_timer <= 0:
                 self._end_freight()
+        old_speed = self.player.speed
+        if self.cheats.speed_boost:
+            self.player.speed *= const.CHEAT_SPEED_MULT
         self.player.update(dt)
+        self.player.speed = old_speed
         self.pacgums.update(dt)
         self._check_eating()
         self._update_mode(dt)
         self._update_ghost_goals()
-        for g in self.ghosts:
-            g.update(dt)
-            if g.mode == "spawn" and g.direction is None:
-                g.go_idle()
+        if not self.cheats.ghost_freeze:
+            for g in self.ghosts:
+                g.update(dt)
+                if (g.mode == "spawn"
+                        and g.direction is None):
+                    if self.cheats.always_fright:
+                        g.start_freight()
+                    else:
+                        g.go_idle()
         self._check_ghost_collision()
 
     def _check_eating(self) -> None:
@@ -224,7 +239,7 @@ class Game:
                 g.set_goal(pr, pc)
 
     def _check_ghost_collision(self) -> None:
-        if self._invincible_timer > 0:
+        if self._invincible_timer > 0 and not self.cheats.invincible:
             return
         for g in self.ghosts:
             if not (g.grid_row == self.player.grid_row
@@ -235,6 +250,8 @@ class Game:
                 self._ghost_points *= 2
                 g.start_spawn()
             elif g.mode in ("scatter", "chase"):
+                if self.cheats.invincible:
+                    continue
                 self.lives -= 1
                 if self.lives <= 0:
                     self.state = const.STATE_GAME_OVER
@@ -345,3 +362,6 @@ class Game:
             self.screen.blit(
                 self._life_icon, (start_x + i * (icon_w + 4), 8)
             )
+        if self.cfg.cheat:
+            cs = self._small_font.render("CHEAT MODE")
+            self.screen.blit(cs, (8, 22))

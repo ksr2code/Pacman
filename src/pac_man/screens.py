@@ -4,9 +4,12 @@ import re
 import pygame
 
 from . import constants as const
+from .config import Config
 from .font import Text
 from .game import Game
 from .highscore import Highscore
+
+STATE_LEVEL_COMPLETE = "level_complete"
 
 
 class Screen(ABC):
@@ -163,10 +166,12 @@ class PauseScreen(Screen):
         screen: pygame.SurfaceType,
         font: Text,
         game: Game,
+        cfg: Config,
     ) -> None:
         self.screen = screen
         self.font = font
         self.game = game
+        self.cfg = cfg
 
     def handle_event(
         self, event: pygame.event.Event
@@ -178,6 +183,9 @@ class PauseScreen(Screen):
             return const.STATE_PLAYING
         elif event.key == pygame.K_ESCAPE:
             return const.STATE_TITLE
+        elif (event.key == pygame.K_c
+              and self.cfg.cheat):
+            return const.STATE_CHEAT_MENU
         return None
 
     def update(self, dt: float) -> str | None:
@@ -202,6 +210,110 @@ class PauseScreen(Screen):
         menu = self.font.render("ESC - MENU")
         self.screen.blit(
             menu, ((w - menu.get_width()) // 2, h // 2 + 30)
+        )
+        if self.cfg.cheat:
+            cheats = self.font.render("C - CHEATS")
+            self.screen.blit(
+                cheats,
+                ((w - cheats.get_width()) // 2, h // 2 + 60)
+            )
+
+
+class CheatMenuScreen(Screen):
+    def __init__(
+        self,
+        screen: pygame.SurfaceType,
+        font: Text,
+        small_font: Text,
+        game: Game,
+    ) -> None:
+        self.screen = screen
+        self.font = font
+        self.small_font = small_font
+        self.game = game
+        self._options: list[tuple[str, str | None]] = [
+            ("Invincibility", "invincible"),
+            ("Level Skip", None),
+            ("Ghost Freeze", "ghost_freeze"),
+            ("Extra Life", None),
+            ("Speed Boost", "speed_boost"),
+            ("Always Fright", "always_fright"),
+        ]
+
+    def handle_event(
+        self, event: pygame.event.Event
+    ) -> str | None:
+        if event.type != pygame.KEYDOWN:
+            return None
+        if event.key == pygame.K_ESCAPE:
+            return const.STATE_PAUSE
+        for i in range(len(self._options)):
+            if event.key in (
+                pygame.K_1 + i, pygame.K_KP1 + i
+            ):
+                self._apply(i)
+                break
+        return None
+
+    def _apply(self, idx: int) -> None:
+        name, toggle = self._options[idx]
+        if name == "Level Skip":
+            self.game.skip_level()
+        elif name == "Extra Life":
+            self.game.extra_life()
+        elif toggle == "invincible":
+            self.game.toggle_invincible()
+        elif toggle == "ghost_freeze":
+            self.game.toggle_ghost_freeze()
+        elif toggle == "speed_boost":
+            self.game.toggle_speed_boost()
+        elif toggle == "always_fright":
+            self.game.toggle_always_fright()
+
+    def update(self, dt: float) -> str | None:
+        if self.game.state in (
+            const.STATE_VICTORY, STATE_LEVEL_COMPLETE,
+        ):
+            return const.STATE_CHEAT_MENU
+        return None
+
+    def draw(self) -> None:
+        self.game.draw()
+        w = self.screen.get_width()
+        h = self.screen.get_height()
+        overlay = pygame.Surface((w, h))
+        overlay.set_alpha(180)
+        overlay.fill((0, 0, 0))
+        self.screen.blit(overlay, (0, 0))
+        title = self.font.render("CHEATS")
+        self.screen.blit(
+            title, ((w - title.get_width()) // 2, h // 6)
+        )
+        y = h // 3
+        for i, (name, toggle) in enumerate(
+            self._options
+        ):
+            active = (
+                toggle is not None
+                and getattr(self.game.cheats, toggle)
+            )
+            color = (
+                const.COLOR_YELLOW if active
+                else const.COLOR_WHITE
+            )
+            self.small_font.color = color
+            label = f"{i + 1} - {name.upper()}"
+            if toggle is not None:
+                label += " [ON]" if active else " [OFF]"
+            surf = self.small_font.render(label)
+            self.screen.blit(
+                surf, ((w - surf.get_width()) // 2, y)
+            )
+            y += 28
+        self.small_font.color = const.COLOR_WHITE
+        back = self.small_font.render("ESC - BACK")
+        self.screen.blit(
+            back, ((w - back.get_width()) // 2, y + 20)
         )
 
 

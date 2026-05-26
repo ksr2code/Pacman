@@ -9,6 +9,7 @@ from .game import Game
 from .highscore import Highscore
 from .sound import Sound
 from .screens import (
+    CheatMenuScreen,
     GameOverScreen,
     HighscoresScreen,
     InstructionsScreen,
@@ -61,7 +62,13 @@ class App:
             self._screen = _GameScreen(self.game)
         elif new_state == const.STATE_PAUSE:
             self._screen = PauseScreen(
-                self.screen, self.small_font, self.game,
+                self.screen, self.small_font,
+                self.game, self.cfg,
+            )
+        elif new_state == const.STATE_CHEAT_MENU:
+            self._screen = CheatMenuScreen(
+                self.screen, self.font,
+                self.small_font, self.game,
             )
         elif new_state == const.STATE_GAME_OVER:
             self._screen = GameOverScreen(
@@ -98,6 +105,11 @@ class App:
             self._check_game_state()
         elif self._state == STATE_LEVEL_COMPLETE:
             pass
+        elif self._state == const.STATE_CHEAT_MENU:
+            result = self._screen.handle_event(event)
+            if result is not None:
+                self._transition(result)
+            self._check_game_state()
         else:
             result = self._screen.handle_event(event)
             if result == const.STATE_WAITING:
@@ -113,6 +125,8 @@ class App:
         elif self._state == STATE_LEVEL_COMPLETE:
             self.game.update(dt)
             self._check_game_state()
+        elif self._state == const.STATE_CHEAT_MENU:
+            self._check_game_state()
         else:
             result = self._screen.update(dt)
             if result is not None:
@@ -122,6 +136,8 @@ class App:
         s = self.game.state
         if s == const.STATE_PAUSE:
             self._transition(const.STATE_PAUSE)
+        elif s == const.STATE_CHEAT_MENU:
+            self._transition(const.STATE_CHEAT_MENU)
         elif s == const.STATE_GAME_OVER:
             self._transition(const.STATE_GAME_OVER)
         elif s == const.STATE_VICTORY:
