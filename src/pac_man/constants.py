@@ -28,6 +28,7 @@ LEVEL_COMPLETE_PAUSE = 3.0
 GHOST_SPEED_PER_LEVEL = 0.5
 FREIGHT_TIME_DECREASE = 0.5
 MIN_FREIGHT_TIME = 2.0
+CHEAT_SPEED_MULT = 2.0
 NUM_LEVELS = 10
 
 STATE_PLAYING = "playing"
@@ -39,6 +40,7 @@ STATE_NAME_ENTRY = "name_entry"
 STATE_VICTORY = "victory"
 STATE_HIGHSCORES = "highscores"
 STATE_INSTRUCTIONS = "instructions"
+STATE_CHEAT_MENU = "cheat_menu"
 
 __all__: Sequence[str] = [
     "TILE_SIZE",
@@ -55,6 +57,7 @@ __all__: Sequence[str] = [
     "GHOST_SPEED_PER_LEVEL",
     "FREIGHT_TIME_DECREASE",
     "MIN_FREIGHT_TIME",
+    "CHEAT_SPEED_MULT",
     "NUM_LEVELS",
     "COLOR_BLACK",
     "COLOR_WHITE",
@@ -74,4 +77,5 @@ __all__: Sequence[str] = [
     "STATE_VICTORY",
     "STATE_HIGHSCORES",
     "STATE_INSTRUCTIONS",
+    "STATE_CHEAT_MENU",
 ]

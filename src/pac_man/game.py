@@ -1,3 +1,5 @@
+from dataclasses import dataclass
+
 import pygame
 
 from . import constants as const
@@ -18,6 +20,14 @@ GHOST_DEFS = [
 STATE_LEVEL_COMPLETE = "level_complete"
 
 
+@dataclass
+class Cheats:
+    invincible: bool = False
+    ghost_freeze: bool = False
+    speed_boost: bool = False
+    always_fright: bool = False
+
+
 class Game:
     def __init__(self, cfg: Config, screen: pygame.SurfaceType) -> None:
         self.cfg = cfg
@@ -35,6 +45,7 @@ class Game:
         self._current_mode: str = "scatter"
         self._current_freight_time: float = const.FREIGHT_TIME
         self._level_timer: float = float(cfg.level_max_time)
+        self.cheats: Cheats = Cheats()
 
         self._font = Text()
         self._small_font = Text()
@@ -259,6 +270,34 @@ class Game:
         self._freight_timer = 0.0
         self._ghost_points = 200
         self._init_level(self.cfg.seed)
+
+    def toggle_invincible(self) -> None:
+        self.cheats.invincible = not self.cheats.invincible
+
+    def toggle_ghost_freeze(self) -> None:
+        self.cheats.ghost_freeze = not self.cheats.ghost_freeze
+
+    def toggle_speed_boost(self) -> None:
+        self.cheats.speed_boost = not self.cheats.speed_boost
+
+    def toggle_always_fright(self) -> None:
+        self.cheats.always_fright = not self.cheats.always_fright
+        if self.cheats.always_fright:
+            for g in self.ghosts:
+                if g.mode in ("scatter", "chase"):
+                    g.start_freight()
+        else:
+            self._end_freight()
+
+    def skip_level(self) -> None:
+        if self.level_number >= const.NUM_LEVELS:
+            self.state = const.STATE_VICTORY
+        else:
+            self.state = STATE_LEVEL_COMPLETE
+            self._pause_timer = const.LEVEL_COMPLETE_PAUSE
+
+    def extra_life(self) -> None:
+        self.lives += 1
 
     def _find_ghost_spawns(self) -> list[tuple[int, int]]:
         rows = len(self.maze.out)

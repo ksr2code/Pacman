@@ -92,3 +92,25 @@ def test_unknown_keys_ignored() -> None:
         assert success is True
     finally:
         os.unlink(path)
+
+
+def test_cheat_default_is_false() -> None:
+    path = _write_temp_json('{"width": 10, "height": 12}')
+    try:
+        cfg = Config()
+        cfg.read(path)
+        assert cfg.cheat is False
+    finally:
+        os.unlink(path)
+
+
+def test_cheat_enabled() -> None:
+    path = _write_temp_json(
+        json.dumps({"width": 10, "height": 12, "cheat": True})
+    )
+    try:
+        cfg = Config()
+        cfg.read(path)
+        assert cfg.cheat is True
+    finally:
+        os.unlink(path)

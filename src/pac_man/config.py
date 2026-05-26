@@ -35,6 +35,7 @@ class ConfigData(BaseModel):
     points_per_ghost: int = 200
     seed: int = 42
     level_max_time: int = 90
+    cheat: bool = False
 
     @model_validator(mode="after")  # type: ignore[arg-type]
     def _clamp_values(self) -> Self:
@@ -107,3 +108,7 @@ class Config:
     @property
     def level_max_time(self) -> int:
         return self.data.level_max_time
+
+    @property
+    def cheat(self) -> bool:
+        return self.data.cheat
