@@ -206,6 +206,8 @@ class Game:
                 self._pause_timer = const.LEVEL_COMPLETE_PAUSE
 
     def _start_freight(self) -> None:
+        if self.cheats.always_fright:
+            return
         self._freight_timer = self._current_freight_time
         self._ghost_points = 200
         for g in self.ghosts:
