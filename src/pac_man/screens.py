@@ -185,6 +185,7 @@ class PauseScreen(Screen):
             return const.STATE_TITLE
         elif (event.key == pygame.K_c
               and self.cfg.cheat):
+            self.game.state = const.STATE_CHEAT_MENU
             return const.STATE_CHEAT_MENU
         return None
 
@@ -246,6 +247,7 @@ class CheatMenuScreen(Screen):
         if event.type != pygame.KEYDOWN:
             return None
         if event.key == pygame.K_ESCAPE:
+            self.game.state = const.STATE_PAUSE
             return const.STATE_PAUSE
         for i in range(len(self._options)):
             if event.key in (
