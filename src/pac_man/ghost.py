@@ -5,7 +5,7 @@ from collections import deque
 
 from . import constants as const
 from .maze import Maze
-from .sprites import GhostSpritesheet
+from .sprites import SpriteSheet
 
 
 REVERSE = {
@@ -25,7 +25,7 @@ class Ghost:
         color: tuple[int, int, int],
         scatter_goal: tuple[int, int] = (0, 0),
         col_index: int = 0,
-        spritesheet: GhostSpritesheet | None = None,
+        spritesheet: SpriteSheet | None = None,
     ) -> None:
         self.maze = maze
         self.color = color

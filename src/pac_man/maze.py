@@ -6,7 +6,7 @@ from pygame import SurfaceType
 import pygame
 from mazegenerator.mazegenerator import MazeGenerator
 from .config import Config
-from .sprites import Spritesheet
+from .sprites import SpriteSheet
 
 
 class Maze:
@@ -33,7 +33,7 @@ class Maze:
             raise
 
     def _build_maze(self) -> list[list[SurfaceType | None]]:
-        sprite = Spritesheet("maze.png")
+        sprite = SpriteSheet("maze.png")
 
         N = 0b0001
         E = 0b0010

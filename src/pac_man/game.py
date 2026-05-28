@@ -9,7 +9,7 @@ from .ghost import Ghost
 from .maze import Maze
 from .pacgums import Pacgums
 from .player import Player
-from .sprites import GhostSpritesheet
+from .sprites import SpriteSheet
 
 GHOST_DEFS = [
     (const.COLOR_RED, "tl", "tr"),
@@ -30,7 +30,7 @@ class Cheats:
 
 
 class Game:
-    _ghost_ss: GhostSpritesheet | None = None
+    _ghost_ss: SpriteSheet | None = None
 
     def __init__(self, cfg: Config, screen: pygame.SurfaceType) -> None:
         self.cfg = cfg
@@ -132,9 +132,11 @@ class Game:
             for g in self.ghosts:
                 g.start_freight()
 
-    def _get_ghost_spritesheet(self) -> GhostSpritesheet:
+    def _get_ghost_spritesheet(self) -> SpriteSheet:
         if Game._ghost_ss is None:
-            Game._ghost_ss = GhostSpritesheet()
+            Game._ghost_ss = SpriteSheet(
+                "spritesheet_nopink.png"
+            )
         return Game._ghost_ss
 
     def handle_event(self, event: pygame.event.Event) -> None:

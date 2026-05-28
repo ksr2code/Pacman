@@ -2,7 +2,7 @@ import pygame
 
 from . import constants as const
 from .maze import Maze
-from .sprites import Spritesheet
+from .sprites import SpriteSheet
 
 DIRECTIONS = {
     "up": (-1, 0),
@@ -26,13 +26,29 @@ class Player:
         self.direction: tuple[int, int] | None = None
         self.next_direction: tuple[int, int] | None = None
 
-        spritesheet = Spritesheet()
-        base = [spritesheet.getImage(0, i * 32) for i in range(3)]
+        ss = SpriteSheet("spritesheet_nopink.png")
+        closed = ss.getImageGrid(4, 0)
         self.frames: dict[str, list[pygame.SurfaceType]] = {
-            "right": base,
-            "left": [pygame.transform.rotate(f, 180) for f in base],
-            "up": [pygame.transform.rotate(f, 90) for f in base],
-            "down": [pygame.transform.rotate(f, -90) for f in base],
+            "left": [
+                closed,
+                ss.getImageGrid(0, 0),
+                ss.getImageGrid(0, 1),
+            ],
+            "right": [
+                closed,
+                ss.getImageGrid(1, 0),
+                ss.getImageGrid(1, 1),
+            ],
+            "down": [
+                closed,
+                ss.getImageGrid(2, 0),
+                ss.getImageGrid(2, 1),
+            ],
+            "up": [
+                closed,
+                ss.getImageGrid(3, 0),
+                ss.getImageGrid(3, 1),
+            ],
         }
         self.last_dir: str = "right"
         self.anim_time: float = 0.0

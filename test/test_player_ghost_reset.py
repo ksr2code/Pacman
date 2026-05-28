@@ -8,7 +8,7 @@ class TestPlayerReset:
     def setup_method(self):
         self.maze = MagicMock()
         self.maze.center = (5, 5)
-        with patch("src.pac_man.player.Spritesheet"), \
+        with patch("src.pac_man.player.SpriteSheet"), \
              patch("pygame.transform.rotate"):
             self.player = Player(self.maze)
 
