@@ -9,6 +9,7 @@ from .ghost import Ghost
 from .maze import Maze
 from .pacgums import Pacgums
 from .player import Player
+from .sprites import GhostSpritesheet
 
 GHOST_DEFS = [
     (const.COLOR_RED, "tl", "tr"),
@@ -29,6 +30,8 @@ class Cheats:
 
 
 class Game:
+    _ghost_ss: GhostSpritesheet | None = None
+
     def __init__(self, cfg: Config, screen: pygame.SurfaceType) -> None:
         self.cfg = cfg
         self.screen = screen
@@ -87,11 +90,18 @@ class Game:
         }
 
         self._ghost_spawns = self._find_ghost_spawns()
+        ss = self._get_ghost_spritesheet()
         if not self.ghosts:
-            for i, (color, _, scatter_key) in enumerate(GHOST_DEFS):
+            for i, (color, _, scatter_key) in enumerate(
+                GHOST_DEFS
+            ):
                 r, c = self._ghost_spawns[i]
                 self.ghosts.append(
-                    Ghost(self.maze, r, c, color, corners[scatter_key])
+                    Ghost(
+                        self.maze, r, c, color,
+                        corners[scatter_key],
+                        col_index=i, spritesheet=ss,
+                    )
                 )
         else:
             for i, g in enumerate(self.ghosts):
@@ -121,6 +131,11 @@ class Game:
         if self.cheats.always_fright:
             for g in self.ghosts:
                 g.start_freight()
+
+    def _get_ghost_spritesheet(self) -> GhostSpritesheet:
+        if Game._ghost_ss is None:
+            Game._ghost_ss = GhostSpritesheet()
+        return Game._ghost_ss
 
     def handle_event(self, event: pygame.event.Event) -> None:
         if event.type != pygame.KEYDOWN:
@@ -336,7 +351,10 @@ class Game:
         self.pacgums.draw(self.screen, self.hud_offset)
         self.player.draw(self.screen, self.hud_offset)
         for g in self.ghosts:
-            g.draw(self.screen, self.hud_offset)
+            g.draw(
+                self.screen, self.hud_offset,
+                self._freight_timer,
+            )
         self._draw_hud()
 
     def _draw_hud(self) -> None:

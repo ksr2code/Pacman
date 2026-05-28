@@ -5,6 +5,7 @@ from collections import deque
 
 from . import constants as const
 from .maze import Maze
+from .sprites import GhostSpritesheet
 
 
 REVERSE = {
@@ -23,6 +24,8 @@ class Ghost:
         col: int,
         color: tuple[int, int, int],
         scatter_goal: tuple[int, int] = (0, 0),
+        col_index: int = 0,
+        spritesheet: GhostSpritesheet | None = None,
     ) -> None:
         self.maze = maze
         self.color = color
@@ -41,6 +44,9 @@ class Ghost:
         self.direction: tuple[int, int] | None = None
         self.goal: tuple[int, int] = scatter_goal
         self.mode: str = "scatter"
+        self._col_index = col_index
+        self._ss = spritesheet
+        self._last_dir: tuple[int, int] = (0, 1)
 
     def set_base_speed(self, speed: float) -> None:
         self._base_speed = speed
@@ -163,6 +169,9 @@ class Ghost:
             if not self.direction:
                 return
 
+        if self.direction:
+            self._last_dir = self.direction
+
         move = self.speed * dt
         dr, dc = self.direction
         target_px = (self.grid_col + dc) * const.TILE_SIZE
@@ -199,20 +208,45 @@ class Ghost:
         self.speed = self._base_speed
 
     def draw(
-        self, screen: pygame.SurfaceType, offset_y: int = 0
+        self,
+        screen: pygame.SurfaceType,
+        offset_y: int = 0,
+        freight_timer: float = 0.0,
     ) -> None:
-        half = const.TILE_SIZE // 2
-        cx = int(self.px) + half
-        cy = int(self.py) + half + offset_y
+        if self._ss is None:
+            half = const.TILE_SIZE // 2
+            cx = int(self.px) + half
+            cy = int(self.py) + half + offset_y
+            if self.mode == "freight":
+                pygame.draw.circle(
+                    screen, const.COLOR_BLUE,
+                    (cx, cy), half - 2,
+                )
+            elif self.mode in ("spawn", "idle"):
+                pygame.draw.circle(
+                    screen, const.COLOR_GREY,
+                    (cx, cy), half // 2,
+                )
+            else:
+                pygame.draw.circle(
+                    screen, self.color,
+                    (cx, cy), half - 2,
+                )
+            return
+
         if self.mode == "freight":
-            pygame.draw.circle(
-                screen, const.COLOR_BLUE, (cx, cy), half - 2
-            )
+            if (freight_timer < 1.5
+                    and int(freight_timer * 4) % 2):
+                frame = self._ss.freight_white()
+            else:
+                frame = self._ss.freight_blue()
         elif self.mode in ("spawn", "idle"):
-            pygame.draw.circle(
-                screen, const.COLOR_GREY, (cx, cy), half // 2
-            )
+            frame = self._ss.eyes_frame(self._last_dir)
         else:
-            pygame.draw.circle(
-                screen, self.color, (cx, cy), half - 2
+            frame = self._ss.ghost_frame(
+                self._col_index, self._last_dir
             )
+        screen.blit(
+            frame,
+            (int(self.px), int(self.py) + offset_y),
+        )
