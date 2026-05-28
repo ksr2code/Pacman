@@ -78,7 +78,9 @@ class Game:
 
         spawn = self.maze.center
         self._player_spawn = spawn
-        self.pacgums = Pacgums(self.maze, {spawn})
+        self.pacgums = Pacgums(
+            self.maze, {spawn}, self._get_ghost_spritesheet()
+        )
 
         rows = len(self.maze.out)
         cols = len(self.maze.out[0])

@@ -1,23 +1,39 @@
+import random
+
 import pygame
 
 from . import constants as const
 from .maze import Maze
 from .sound import Sound
+from .sprites import SpriteSheet
+
+FRUIT_COLS = [8, 9, 10]
+FRUIT_ROWS = [4, 5]
 
 
 class Pacgums:
-    def __init__(self, maze: Maze, exclude: set[tuple[int, int]]) -> None:
+    def __init__(
+        self,
+        maze: Maze,
+        exclude: set[tuple[int, int]],
+        spritesheet: SpriteSheet | None = None,
+    ) -> None:
         self.pacgums: dict[tuple[int, int], str] = {}
         self._blink_timer: float = 0.0
         self._blink_visible: bool = True
         self.sound = Sound("eat_dot_0.ogg")
+        self._fruit_sprites: dict[
+            tuple[int, int], pygame.SurfaceType
+        ] = {}
+        self._ss = spritesheet
         rows = len(maze.out)
         cols = len(maze.out[0])
         for r in range(1, rows, 2):
             for c in range(1, cols, 2):
                 if (r, c) in exclude:
                     continue
-                if maze.out[r][c] is None and self._has_exit(maze, r, c):
+                if (maze.out[r][c] is None
+                        and self._has_exit(maze, r, c)):
                     self.pacgums[(r, c)] = "pacgum"
         self._place_super(maze)
 
@@ -38,6 +54,12 @@ class Pacgums:
             pos = self._bfs_walkable(maze, cr | 1, cc | 1)
             if pos and pos in self.pacgums:
                 self.pacgums[pos] = "super"
+                if self._ss is not None:
+                    col = random.choice(FRUIT_COLS)
+                    row = random.choice(FRUIT_ROWS)
+                    self._fruit_sprites[pos] = (
+                        self._ss.getImageGrid(col, row)
+                    )
 
     def _bfs_walkable(
         self, maze: Maze, sr: int, sc: int
@@ -77,13 +99,28 @@ class Pacgums:
             self._blink_timer = 0.0
             self._blink_visible = not self._blink_visible
 
-    def draw(self, screen: pygame.SurfaceType, offset_y: int = 0) -> None:
+    def draw(
+        self, screen: pygame.SurfaceType, offset_y: int = 0
+    ) -> None:
         half = const.TILE_SIZE // 2
         for (r, c), kind in self.pacgums.items():
             cx = c * const.TILE_SIZE + half
             cy = r * const.TILE_SIZE + half + offset_y
             if kind == "super":
                 if self._blink_visible:
-                    pygame.draw.circle(screen, (255, 255, 255), (cx, cy), 8)
+                    sprite = self._fruit_sprites.get((r, c))
+                    if sprite:
+                        screen.blit(
+                            sprite,
+                            (c * const.TILE_SIZE,
+                             r * const.TILE_SIZE + offset_y),
+                        )
+                    else:
+                        pygame.draw.circle(
+                            screen, (255, 255, 255),
+                            (cx, cy), 8,
+                        )
             else:
-                pygame.draw.circle(screen, (255, 255, 255), (cx, cy), 3)
+                pygame.draw.circle(
+                    screen, (255, 255, 255), (cx, cy), 3
+                )
