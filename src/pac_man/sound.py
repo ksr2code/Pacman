@@ -13,8 +13,14 @@ class Sound:
             f"../../assets/sounds/{sound_file}",
         )
 
-    def play(self):
+    def play(self, loops: int = 0) -> None:
         if self._sound:
-            mixer.Sound.play(self._sound)
+            mixer.Sound.play(self._sound, loops=loops)
         else:
-            raise FileNotFoundError(f"Missing sound file {self._path}")
+            raise FileNotFoundError(
+                f"Missing sound file {self._path}"
+            )
+
+    def stop(self) -> None:
+        if self._sound:
+            mixer.Sound.stop(self._sound)

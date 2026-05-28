@@ -21,7 +21,11 @@ class Pacgums:
         self.pacgums: dict[tuple[int, int], str] = {}
         self._blink_timer: float = 0.0
         self._blink_visible: bool = True
-        self.sound = Sound("eat_dot_0.ogg")
+        self._eat_sounds: list[Sound] = [
+            Sound("eat_dot_0.ogg"),
+            Sound("eat_dot_1.ogg"),
+        ]
+        self._eat_idx: int = 0
         self._fruit_sprites: dict[
             tuple[int, int], pygame.SurfaceType
         ] = {}
@@ -86,8 +90,9 @@ class Pacgums:
     def eat(self, row: int, col: int) -> str | None:
         return self.pacgums.pop((row, col), None)
 
-    def eat_sound(self):
-        self.sound.play()
+    def eat_sound(self) -> None:
+        self._eat_sounds[self._eat_idx].play()
+        self._eat_idx = 1 - self._eat_idx
 
     @property
     def remaining(self) -> int:

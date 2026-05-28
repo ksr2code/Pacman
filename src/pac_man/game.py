@@ -9,6 +9,7 @@ from .ghost import Ghost
 from .maze import Maze
 from .pacgums import Pacgums
 from .player import Player
+from .sound import Sound
 from .sprites import SpriteSheet
 
 GHOST_DEFS = [
@@ -19,6 +20,7 @@ GHOST_DEFS = [
 ]
 
 STATE_LEVEL_COMPLETE = "level_complete"
+STATE_DYING = "dying"
 
 
 @dataclass
@@ -43,6 +45,9 @@ class Game:
         self._invincible_timer: float = 0.0
         self._pause_timer: float = 0.0
         self._freight_timer: float = 0.0
+        self._death_timer: float = 0.0
+        self._fright_sound: Sound | None = None
+        self._eyes_sound: Sound | None = None
         self._ghost_points: int = 200
         self._mode_timer: float = 0.0
         self._current_mode: str = "scatter"
@@ -167,6 +172,17 @@ class Game:
     def update(self, dt: float) -> None:
         if self.state == const.STATE_GAME_OVER:
             return
+        if self.state == STATE_DYING:
+            self._death_timer -= dt
+            if self._death_timer <= 0:
+                if self.lives <= 0:
+                    self.state = const.STATE_GAME_OVER
+                else:
+                    self._reset_positions()
+                    self._pause_timer = 1.0
+                    self._invincible_timer = const.INVINCIBLE_TIME
+                    self.state = const.STATE_PLAYING
+            return
         if self.state == STATE_LEVEL_COMPLETE:
             self._pause_timer -= dt
             if self._pause_timer <= 0:
@@ -206,6 +222,7 @@ class Game:
                     else:
                         g.go_idle()
         self._check_ghost_collision()
+        self._update_eyes_sound()
 
     def _check_eating(self) -> None:
         kind = self.pacgums.eat(
@@ -216,6 +233,7 @@ class Game:
             self.pacgums.eat_sound()
         elif kind == "super":
             self.score += self.cfg.points_per_super_pacgum
+            Sound("eat_fruit.ogg").play()
             self._start_freight()
         if self.pacgums.remaining == 0:
             if self.level_number >= const.NUM_LEVELS:
@@ -227,15 +245,31 @@ class Game:
     def _start_freight(self) -> None:
         if self.cheats.always_fright:
             return
+        self._stop_fright_sound()
         self._freight_timer = self._current_freight_time
         self._ghost_points = 200
+        self._fright_sound = Sound("fright.ogg")
+        self._fright_sound.play(loops=-1)
         for g in self.ghosts:
             g.start_freight()
 
     def _end_freight(self) -> None:
+        self._stop_fright_sound()
         for g in self.ghosts:
             if g.mode not in ("scatter", "chase"):
                 g.go_normal(self._current_mode)
+
+    def _stop_fright_sound(self) -> None:
+        if self._fright_sound:
+            self._fright_sound.stop()
+            self._fright_sound = None
+
+    def _update_eyes_sound(self) -> None:
+        if self._eyes_sound and not any(
+            g.mode == "spawn" for g in self.ghosts
+        ):
+            self._eyes_sound.stop()
+            self._eyes_sound = None
 
     def _update_mode(self, dt: float) -> None:
         self._mode_timer += dt
@@ -269,17 +303,19 @@ class Game:
             if g.mode == "freight":
                 self.score += self._ghost_points
                 self._ghost_points *= 2
+                Sound("eat_ghost.ogg").play()
                 g.start_spawn()
+                if self._eyes_sound is None:
+                    self._eyes_sound = Sound("eyes.ogg")
+                    self._eyes_sound.play(loops=-1)
             elif g.mode in ("scatter", "chase"):
                 if self.cheats.invincible:
                     continue
                 self.lives -= 1
-                if self.lives <= 0:
-                    self.state = const.STATE_GAME_OVER
-                else:
-                    self._reset_positions()
-                    self._pause_timer = 1.0
-                    self._invincible_timer = const.INVINCIBLE_TIME
+                self._stop_fright_sound()
+                self.state = STATE_DYING
+                self._death_timer = const.DEATH_ANIM_TIME
+                Sound("death_0.ogg").play()
                 return
 
     def _reset_positions(self) -> None:
@@ -353,7 +389,15 @@ class Game:
     def draw(self) -> None:
         self.maze.draw(self.hud_offset)
         self.pacgums.draw(self.screen, self.hud_offset)
-        self.player.draw(self.screen, self.hud_offset)
+        if self.state == STATE_DYING:
+            progress = 1.0 - (
+                self._death_timer / const.DEATH_ANIM_TIME
+            )
+            self.player.draw_death(
+                self.screen, self.hud_offset, progress
+            )
+        else:
+            self.player.draw(self.screen, self.hud_offset)
         for g in self.ghosts:
             g.draw(
                 self.screen, self.hud_offset,

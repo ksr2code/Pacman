@@ -22,6 +22,7 @@ from .screens import (
 )
 
 STATE_LEVEL_COMPLETE = "level_complete"
+STATE_DYING = "dying"
 
 
 class App:
@@ -103,7 +104,7 @@ class App:
         if self._state == const.STATE_PLAYING:
             self.game.handle_event(event)
             self._check_game_state()
-        elif self._state == STATE_LEVEL_COMPLETE:
+        elif self._state in (STATE_LEVEL_COMPLETE, STATE_DYING):
             pass
         elif self._state == const.STATE_CHEAT_MENU:
             result = self._screen.handle_event(event)
@@ -122,7 +123,9 @@ class App:
         if self._state == const.STATE_PLAYING:
             self.game.update(dt)
             self._check_game_state()
-        elif self._state == STATE_LEVEL_COMPLETE:
+        elif self._state in (
+            STATE_LEVEL_COMPLETE, STATE_DYING
+        ):
             self.game.update(dt)
             self._check_game_state()
         elif self._state == const.STATE_CHEAT_MENU:
@@ -145,8 +148,13 @@ class App:
         elif s == STATE_LEVEL_COMPLETE:
             if self._state != STATE_LEVEL_COMPLETE:
                 self._state = STATE_LEVEL_COMPLETE
+        elif s == STATE_DYING:
+            if self._state != STATE_DYING:
+                self._state = STATE_DYING
         elif s == const.STATE_PLAYING:
-            if self._state == STATE_LEVEL_COMPLETE:
+            if self._state in (
+                STATE_LEVEL_COMPLETE, STATE_DYING
+            ):
                 self._transition(const.STATE_PLAYING)
 
     def draw(self) -> None:
@@ -169,6 +177,8 @@ class _GameScreen(Screen):
         self.game.draw()
 
 # TODO this might have to be ASYNC because of pygbag
+
+
 def pacman(cfg_file_path: str) -> None:
     cfg = Config()
     if not cfg.read(cfg_file_path):

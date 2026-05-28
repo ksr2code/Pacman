@@ -52,6 +52,9 @@ class Player:
         }
         self.last_dir: str = "right"
         self.anim_time: float = 0.0
+        self.death_frames: list[pygame.SurfaceType] = [
+            ss.getImageGrid(col, 6) for col in range(11)
+        ]
 
     def set_direction(self, name: str) -> None:
         d = DIRECTIONS.get(name)
@@ -115,4 +118,11 @@ class Player:
                     break
         idx = int(self.anim_time * 10) % len(self.frames[self.last_dir])
         frame = self.frames[self.last_dir][idx]
+        screen.blit(frame, (self.px, self.py + offset_y))
+
+    def draw_death(
+        self, screen: pygame.SurfaceType, offset_y: int, progress: float
+    ) -> None:
+        idx = min(int(progress * len(self.death_frames)), 10)
+        frame = self.death_frames[idx]
         screen.blit(frame, (self.px, self.py + offset_y))
