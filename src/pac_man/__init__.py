@@ -1,8 +1,8 @@
-import sys
-from .pacman import pacman
+from os import path
+from .main import pacman
 
 
-def main() -> None:
-    if len(sys.argv) != 2:
-        pacman("config.json")
-    pacman(sys.argv[1])
+def main():
+    base_dir = path.dirname(__file__)
+    default_config = path.abspath(path.join(base_dir, "config.json"))
+    pacman(default_config)

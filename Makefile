@@ -1,4 +1,5 @@
-.PHONY: install run debug clean lint lint-strict test re push
+export UV_SKIP_WHEEL_FILENAME_CHECK=1
+.PHONY: install run debug clean lint lint-strict test re push skip
 
 ifneq (,$(wildcard ./.env))
     include .env
@@ -10,21 +11,19 @@ PY_FILES := pac-man.py $(shell find src -name '*.py' -type f)
 GREEN := \033[0;32mOK\033[0m
 RED := \033[0;31mKO\033[0m
 
-
 install:
-	UV_SKIP_WHEEL_FILENAME_CHECK=1 uv sync --python 3.12 --all-extras
+	uv sync --python 3.12 --all-extras
 	uv tool install --upgrade pygbag
 
 # use this to create the WebAssembly for itch.io
 build:
-# 	UV_SKIP_WHEEL_FILENAME_CHECK=1 uv run pygbag --disable-sound-format-error --no_opt pac-man.py
-	pygbag --disable-sound-format-error --no_opt --cdn https://pygame-web.github.io/archives/0.8/ --build --html pac-man.py
+	pygbag --disable-sound-format-error --no_opt --cdn https://pygame-web.github.io/archives/0.8/ src/pac_man/
 
 run:
-	UV_SKIP_WHEEL_FILENAME_CHECK=1 uv run pac-man.py $(ARGS)
+	uv run pac-man
 
 debug:
-	UV_SKIP_WHEEL_FILENAME_CHECK=1 uv run python3 -m pdb pac-man.py $(ARGS)
+	uv run python3 -m pdb pac-man.py $(ARGS)
 
 clean:
 	find . -type d -name __pycache__ -exec rm -rf {} +
@@ -43,8 +42,8 @@ test:
 	@echo "WHEN PROJECT IF FINISHED REMOVE THE TEST FOLDER"
 
 lint:
-	UV_SKIP_WHEEL_FILENAME_CHECK=1 uv run flake8 $(PY_FILES)
-	UV_SKIP_WHEEL_FILENAME_CHECK=1 uv run mypy $(PY_FILES) \
+	uv run flake8 $(PY_FILES)
+	uv run mypy $(PY_FILES) \
 		--explicit-package-bases \
 		--warn-return-any \
 		--warn-unused-ignores \
@@ -54,8 +53,8 @@ lint:
 		--exclude '(^\.venv/)'
 
 lint-strict:
-	UV_SKIP_WHEEL_FILENAME_CHECK=1 uv run flake8 $(PY_FILES)
-	UV_SKIP_WHEEL_FILENAME_CHECK=1 uv run mypy $(PY_FILES)\
+	uv run flake8 $(PY_FILES)
+	uv run mypy $(PY_FILES)\
 		--explicit-package-bases \
 		--strict \
 		--exclude '(^\.venv/)'

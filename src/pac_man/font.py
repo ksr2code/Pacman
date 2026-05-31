@@ -13,7 +13,7 @@ class Text:
         if path is None:
             path = os.path.join(
                 os.path.dirname(os.path.abspath(__file__)),
-                "../../assets/fonts/PressStart2P-Regular.ttf",
+                "../assets/fonts/PressStart2P-Regular.ttf",
             )
         self.path = path
         return self.path

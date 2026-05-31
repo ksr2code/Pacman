@@ -10,7 +10,7 @@ class Sound:
     def _set_path(self, sound_file: str) -> str:
         return os.path.join(
             os.path.dirname(os.path.abspath(__file__)),
-            f"../../assets/sounds/{sound_file}",
+            f"../assets/sounds/{sound_file}",
         )
 
     def play(self, loops: int = 0) -> None:

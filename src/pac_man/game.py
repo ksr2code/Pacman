@@ -58,9 +58,7 @@ class Game:
         self._font = Text()
         self._small_font = Text()
         self._small_font.size = 16
-        self._small_font.font = pygame.font.Font(
-            self._small_font.path, 16
-        )
+        self._small_font.font = pygame.font.Font(self._small_font.path, 16)
         self.maze: Maze = None  # type: ignore[assignment]
         self.player: Player = None  # type: ignore[assignment]
         self.pacgums: Pacgums = None  # type: ignore[assignment]
@@ -73,7 +71,7 @@ class Game:
 
     def _init_level(self, seed: int) -> None:
         self.maze = Maze(self.screen, self.cfg, seed=seed)
-        if not hasattr(self, 'player') or self.player is None:
+        if not hasattr(self, "player") or self.player is None:
             self.player = Player(self.maze)
             self._life_icon = pygame.transform.scale(
                 self.player.frames["right"][1], (24, 24)
@@ -99,15 +97,17 @@ class Game:
         self._ghost_spawns = self._find_ghost_spawns()
         ss = self._get_ghost_spritesheet()
         if not self.ghosts:
-            for i, (color, _, scatter_key) in enumerate(
-                GHOST_DEFS
-            ):
+            for i, (color, _, scatter_key) in enumerate(GHOST_DEFS):
                 r, c = self._ghost_spawns[i]
                 self.ghosts.append(
                     Ghost(
-                        self.maze, r, c, color,
+                        self.maze,
+                        r,
+                        c,
+                        color,
                         corners[scatter_key],
-                        col_index=i, spritesheet=ss,
+                        col_index=i,
+                        spritesheet=ss,
                     )
                 )
         else:
@@ -118,9 +118,8 @@ class Game:
                 g.scatter_goal = corners[GHOST_DEFS[i][2]]
 
         ghost_speed = (
-            (const.GHOST_SPEED + self.level_number
-             * const.GHOST_SPEED_PER_LEVEL) * const.TILE_SIZE
-        )
+            const.GHOST_SPEED + self.level_number * const.GHOST_SPEED_PER_LEVEL
+        ) * const.TILE_SIZE
         for g in self.ghosts:
             g.set_base_speed(ghost_speed)
 
@@ -141,9 +140,7 @@ class Game:
 
     def _get_ghost_spritesheet(self) -> SpriteSheet:
         if Game._ghost_ss is None:
-            Game._ghost_ss = SpriteSheet(
-                "spritesheet_nopink.png"
-            )
+            Game._ghost_ss = SpriteSheet("spritesheet_nopink.png")
         return Game._ghost_ss
 
     def handle_event(self, event: pygame.event.Event) -> None:
@@ -160,10 +157,14 @@ class Game:
             self.state = const.STATE_CHEAT_MENU
             return
         key_map = {
-            pygame.K_UP: "up", pygame.K_w: "up",
-            pygame.K_DOWN: "down", pygame.K_s: "down",
-            pygame.K_LEFT: "left", pygame.K_a: "left",
-            pygame.K_RIGHT: "right", pygame.K_d: "right",
+            pygame.K_UP: "up",
+            pygame.K_w: "up",
+            pygame.K_DOWN: "down",
+            pygame.K_s: "down",
+            pygame.K_LEFT: "left",
+            pygame.K_a: "left",
+            pygame.K_RIGHT: "right",
+            pygame.K_d: "right",
         }
         direction = key_map.get(event.key)
         if direction:
@@ -215,8 +216,7 @@ class Game:
         if not self.cheats.ghost_freeze:
             for g in self.ghosts:
                 g.update(dt)
-                if (g.mode == "spawn"
-                        and g.direction is None):
+                if g.mode == "spawn" and g.direction is None:
                     if self.cheats.always_fright:
                         g.start_freight()
                     else:
@@ -225,9 +225,7 @@ class Game:
         self._update_eyes_sound()
 
     def _check_eating(self) -> None:
-        kind = self.pacgums.eat(
-            self.player.grid_row, self.player.grid_col
-        )
+        kind = self.pacgums.eat(self.player.grid_row, self.player.grid_col)
         if kind == "pacgum":
             self.score += self.cfg.points_per_pacgum
             self.pacgums.eat_sound()
@@ -273,12 +271,16 @@ class Game:
 
     def _update_mode(self, dt: float) -> None:
         self._mode_timer += dt
-        if (self._current_mode == "scatter"
-                and self._mode_timer >= const.SCATTER_TIME):
+        if (
+            self._current_mode == "scatter"
+            and self._mode_timer >= const.SCATTER_TIME
+        ):
             self._current_mode = "chase"
             self._mode_timer = 0.0
-        elif (self._current_mode == "chase"
-                and self._mode_timer >= const.CHASE_TIME):
+        elif (
+            self._current_mode == "chase"
+            and self._mode_timer >= const.CHASE_TIME
+        ):
             self._current_mode = "scatter"
             self._mode_timer = 0.0
 
@@ -297,8 +299,10 @@ class Game:
         if self._invincible_timer > 0 and not self.cheats.invincible:
             return
         for g in self.ghosts:
-            if not (g.grid_row == self.player.grid_row
-                    and g.grid_col == self.player.grid_col):
+            if not (
+                g.grid_row == self.player.grid_row
+                and g.grid_col == self.player.grid_col
+            ):
                 continue
             if g.mode == "freight":
                 self.score += self._ghost_points
@@ -382,25 +386,20 @@ class Game:
             (rows - 2, 1),
             (rows - 2, cols - 2),
         ]
-        return [
-            self.maze.nearest_cell(r, c) for r, c in corners
-        ]
+        return [self.maze.nearest_cell(r, c) for r, c in corners]
 
     def draw(self) -> None:
         self.maze.draw(self.hud_offset)
         self.pacgums.draw(self.screen, self.hud_offset)
         if self.state == STATE_DYING:
-            progress = 1.0 - (
-                self._death_timer / const.DEATH_ANIM_TIME
-            )
-            self.player.draw_death(
-                self.screen, self.hud_offset, progress
-            )
+            progress = 1.0 - (self._death_timer / const.DEATH_ANIM_TIME)
+            self.player.draw_death(self.screen, self.hud_offset, progress)
         else:
             self.player.draw(self.screen, self.hud_offset)
         for g in self.ghosts:
             g.draw(
-                self.screen, self.hud_offset,
+                self.screen,
+                self.hud_offset,
                 self._freight_timer,
             )
         self._draw_hud()
@@ -411,27 +410,19 @@ class Game:
         score_surf = self._small_font.render(f"{self.score}")
         self.screen.blit(score_surf, (8, 12))
 
-        level_surf = self._small_font.render(
-            f"Lv.{self.level_number}"
-        )
+        level_surf = self._small_font.render(f"Lv.{self.level_number}")
         level_x = screen_w // 2 - level_surf.get_width() - 10
         self.screen.blit(level_surf, (level_x, 12))
 
         secs = int(self._level_timer)
-        time_surf = self._small_font.render(
-            f"{secs // 60}:{secs % 60:02d}"
-        )
+        time_surf = self._small_font.render(f"{secs // 60}:{secs % 60:02d}")
         time_x = screen_w // 2 + 10
         self.screen.blit(time_surf, (time_x, 12))
 
         icon_w = self._life_icon.get_width()
         start_x = screen_w - (self.lives * (icon_w + 4)) - 4
         for i in range(self.lives):
-            self.screen.blit(
-                self._life_icon, (start_x + i * (icon_w + 4), 8)
-            )
+            self.screen.blit(self._life_icon, (start_x + i * (icon_w + 4), 8))
         if self.cfg.cheat:
             cs = self._small_font.render("cheat mode")
-            self.screen.blit(
-                cs, (score_surf.get_width() + 16, 12)
-            )
+            self.screen.blit(cs, (score_surf.get_width() + 16, 12))

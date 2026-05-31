@@ -1,7 +1,6 @@
 import time
 
 import pygame
-
 from . import constants as const
 from .config import Config
 from .font import Text

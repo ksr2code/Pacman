@@ -16,7 +16,7 @@ class SpriteSheet:
     ) -> None:
         sprite_path = os.path.join(
             os.path.dirname(os.path.abspath(__file__)),
-            f"../../assets/sprites/{filename}",
+            f"../assets/sprites/{filename}",
         )
         self.sheet: pygame.SurfaceType = (
             pygame.image.load(sprite_path).convert_alpha()

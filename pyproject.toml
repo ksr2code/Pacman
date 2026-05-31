@@ -14,7 +14,6 @@ dependencies = [
     "typing_extensions>=4.7.0",
     "mazegenerator",
     "pygame",
-    "pygbag",
 ]
 
 [project.optional-dependencies]
