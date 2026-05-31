@@ -1,6 +1,7 @@
-from dataclasses import dataclass
+from __future__ import annotations
 
-import pygame
+from typing import Any
+from dataclasses import dataclass
 
 from . import constants as const
 from .config import Config
@@ -34,7 +35,9 @@ class Cheats:
 class Game:
     _ghost_ss: SpriteSheet | None = None
 
-    def __init__(self, cfg: Config, screen: pygame.SurfaceType) -> None:
+    def __init__(self, cfg: Config, screen: Any) -> None:
+        import pygame
+
         self.cfg = cfg
         self.screen = screen
         self.score: int = 0
@@ -70,6 +73,8 @@ class Game:
         self._init_level(cfg.seed)
 
     def _init_level(self, seed: int) -> None:
+        import pygame
+
         self.maze = Maze(self.screen, self.cfg, seed=seed)
         if not hasattr(self, "player") or self.player is None:
             self.player = Player(self.maze)
@@ -143,7 +148,9 @@ class Game:
             Game._ghost_ss = SpriteSheet("spritesheet_nopink.png")
         return Game._ghost_ss
 
-    def handle_event(self, event: pygame.event.Event) -> None:
+    def handle_event(self, event: Any) -> None:
+        import pygame
+
         if event.type != pygame.KEYDOWN:
             return
         if event.key == pygame.K_SPACE:
@@ -153,7 +160,7 @@ class Game:
             elif self.state == const.STATE_PAUSE:
                 self.state = const.STATE_PLAYING
                 return
-        if event.key == pygame.K_c and self.cfg.cheat:
+        if event.key == pygame.K_c and bool(getattr(self.cfg, "cheat", False)):
             self.state = const.STATE_CHEAT_MENU
             return
         key_map = {

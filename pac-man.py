@@ -4,6 +4,7 @@ from sys import argv
 from os import path
 from shutil import copy
 from src.pac_man.main import pacman
+import asyncio
 
 
 if __name__ == "__main__":
@@ -21,17 +22,17 @@ if __name__ == "__main__":
         exit(1)
 
     elif len(argv) == 2:
-        pacman(argv[1])
+        asyncio.run(pacman(argv[1]))
 
     else:
         if path.exists(local_config):
-            pacman(local_config)
+            asyncio.run(pacman(local_config))
         else:
             print("Missing 'config.json', loading defaults...")
             ans = input("Do you want to save defaults to config.json (y/n): ")
 
             if ans.lower() == "y":
                 copy(default_config, local_config)
-                pacman(local_config)
+                asyncio.run(pacman(local_config))
             else:
-                pacman(default_config)
+                asyncio.run(pacman(default_config))

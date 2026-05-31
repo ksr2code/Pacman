@@ -1,7 +1,7 @@
 import math
 import random
-import pygame
 from collections import deque
+from typing import Any
 
 from . import constants as const
 from .maze import Maze
@@ -30,9 +30,7 @@ class Ghost:
         self.maze = maze
         self.color = color
         self.scatter_goal = scatter_goal
-        self._base_speed: float = (
-            const.GHOST_SPEED * const.TILE_SIZE
-        )
+        self._base_speed: float = const.GHOST_SPEED * const.TILE_SIZE
         self.speed: float = self._base_speed
         self._home: tuple[int, int] = (row, col)
 
@@ -85,9 +83,7 @@ class Ghost:
         for dr, dc in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
             if (dr, dc) == reverse:
                 continue
-            if self.maze.is_walkable(
-                self.grid_row + dr, self.grid_col + dc
-            ):
+            if self.maze.is_walkable(self.grid_row + dr, self.grid_col + dc):
                 dirs.append((dr, dc))
         return dirs
 
@@ -96,24 +92,18 @@ class Ghost:
     ) -> tuple[int, int] | None:
         options = self._get_walkable_directions()
         if not options:
-            options = self._get_walkable_directions(
-                exclude_reverse=False
-            )
+            options = self._get_walkable_directions(exclude_reverse=False)
         if not options:
             return None
         return random.choice(options)
 
-    def _bfs_distance(
-        self, sr: int, sc: int
-    ) -> float | int:
+    def _bfs_distance(self, sr: int, sc: int) -> float | int:
         if (sr, sc) == self.goal:
             return 0
         rows = len(self.maze.out)
         cols = len(self.maze.out[0])
         visited: set[tuple[int, int]] = {(sr, sc)}
-        queue: deque[tuple[int, int, int]] = deque(
-            [(sr, sc, 0)]
-        )
+        queue: deque[tuple[int, int, int]] = deque([(sr, sc, 0)])
         while queue:
             r, c, d = queue.popleft()
             for dr, dc in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
@@ -137,9 +127,7 @@ class Ghost:
             return self._choose_random_direction()
         options = self._get_walkable_directions()
         if not options:
-            options = self._get_walkable_directions(
-                exclude_reverse=False
-            )
+            options = self._get_walkable_directions(exclude_reverse=False)
         if not options:
             return None
         if len(options) == 1:
@@ -152,9 +140,7 @@ class Ghost:
             if self.mode == "spawn":
                 dist = self._bfs_distance(nr, nc)
             else:
-                dist = math.hypot(
-                    nr - self.goal[0], nc - self.goal[1]
-                )
+                dist = math.hypot(nr - self.goal[0], nc - self.goal[1])
             if dist < best_dist:
                 best_dist = dist
                 best = (dr, dc)
@@ -187,8 +173,7 @@ class Ghost:
             self.grid_col += dc
             if (
                 self.mode == "spawn"
-                and (self.grid_row, self.grid_col)
-                == self._home
+                and (self.grid_row, self.grid_col) == self._home
             ):
                 self.direction = None
             else:
@@ -209,43 +194,48 @@ class Ghost:
 
     def draw(
         self,
-        screen: pygame.SurfaceType,
+        screen: Any,
         offset_y: int = 0,
         freight_timer: float = 0.0,
     ) -> None:
+        import pygame
+
         if self._ss is None:
             half = const.TILE_SIZE // 2
             cx = int(self.px) + half
             cy = int(self.py) + half + offset_y
             if self.mode == "freight":
                 pygame.draw.circle(
-                    screen, const.COLOR_BLUE,
-                    (cx, cy), half - 2,
+                    screen,
+                    const.COLOR_BLUE,
+                    (cx, cy),
+                    half - 2,
                 )
             elif self.mode in ("spawn", "idle"):
                 pygame.draw.circle(
-                    screen, const.COLOR_GREY,
-                    (cx, cy), half // 2,
+                    screen,
+                    const.COLOR_GREY,
+                    (cx, cy),
+                    half // 2,
                 )
             else:
                 pygame.draw.circle(
-                    screen, self.color,
-                    (cx, cy), half - 2,
+                    screen,
+                    self.color,
+                    (cx, cy),
+                    half - 2,
                 )
             return
 
         if self.mode == "freight":
-            if (freight_timer < 1.5
-                    and int(freight_timer * 4) % 2):
+            if freight_timer < 1.5 and int(freight_timer * 4) % 2:
                 frame = self._ss.freight_white()
             else:
                 frame = self._ss.freight_blue()
         elif self.mode in ("spawn", "idle"):
             frame = self._ss.eyes_frame(self._last_dir)
         else:
-            frame = self._ss.ghost_frame(
-                self._col_index, self._last_dir
-            )
+            frame = self._ss.ghost_frame(self._col_index, self._last_dir)
         screen.blit(
             frame,
             (int(self.px), int(self.py) + offset_y),

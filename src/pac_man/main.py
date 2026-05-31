@@ -1,6 +1,7 @@
 import time
-
+from typing import Any
 import pygame
+
 from . import constants as const
 from .config import Config
 from .font import Text
@@ -25,17 +26,13 @@ STATE_DYING = "dying"
 
 
 class App:
-    def __init__(
-        self, cfg: Config, screen: pygame.SurfaceType
-    ) -> None:
+    def __init__(self, cfg: Config, screen: Any) -> None:
         self.cfg = cfg
         self.screen = screen
         self.font = Text()
         self.small_font = Text()
         self.small_font.size = 16
-        self.small_font.font = pygame.font.Font(
-            self.small_font.path, 16
-        )
+        self.small_font.font = pygame.font.Font(self.small_font.path, 16)
         self.sound: Sound = Sound("start.ogg")
         self.highscore = Highscore(cfg.highscore_filename)
         self.highscore.load()
@@ -47,56 +44,71 @@ class App:
     def _transition(self, new_state: str) -> None:
         if new_state == const.STATE_TITLE:
             self._screen = TitleScreen(
-                self.screen, self.font,
-                self.small_font, self.highscore,
+                self.screen,
+                self.font,
+                self.small_font,
+                self.highscore,
             )
             self.sound.play()
         elif new_state == const.STATE_WAITING:
             if self.game is None:
                 self.game = Game(self.cfg, self.screen)
             self._screen = WaitingScreen(
-                self.screen, self.font, self.game,
+                self.screen,
+                self.font,
+                self.game,
             )
         elif new_state == const.STATE_PLAYING:
             self.game.state = const.STATE_PLAYING
             self._screen = _GameScreen(self.game)
         elif new_state == const.STATE_PAUSE:
             self._screen = PauseScreen(
-                self.screen, self.small_font,
-                self.game, self.cfg,
+                self.screen,
+                self.small_font,
+                self.game,
+                self.cfg,
             )
         elif new_state == const.STATE_CHEAT_MENU:
             self._screen = CheatMenuScreen(
-                self.screen, self.font,
-                self.small_font, self.game,
+                self.screen,
+                self.font,
+                self.small_font,
+                self.game,
             )
         elif new_state == const.STATE_GAME_OVER:
             self._screen = GameOverScreen(
-                self.screen, self.font, self.game,
+                self.screen,
+                self.font,
+                self.game,
             )
         elif new_state == const.STATE_VICTORY:
             self._screen = VictoryScreen(
-                self.screen, self.font, self.game,
+                self.screen,
+                self.font,
+                self.game,
             )
         elif new_state == const.STATE_NAME_ENTRY:
             self._screen = NameEntryScreen(
-                self.screen, self.font,
-                self.small_font, self.highscore,
+                self.screen,
+                self.font,
+                self.small_font,
+                self.highscore,
                 self.game.score,
             )
         elif new_state == const.STATE_HIGHSCORES:
             self._screen = HighscoresScreen(
-                self.screen, self.small_font, self.highscore,
+                self.screen,
+                self.small_font,
+                self.highscore,
             )
         elif new_state == const.STATE_INSTRUCTIONS:
             self._screen = InstructionsScreen(
-                self.screen, self.small_font,
+                self.screen,
+                self.small_font,
             )
         self._state = new_state
 
-    def handle_event(
-        self, event: pygame.event.Event
-    ) -> None:
+    def handle_event(self, event: pygame.event.Event) -> None:
         if event.type == pygame.QUIT:
             pygame.quit()
             exit()
@@ -122,9 +134,7 @@ class App:
         if self._state == const.STATE_PLAYING:
             self.game.update(dt)
             self._check_game_state()
-        elif self._state in (
-            STATE_LEVEL_COMPLETE, STATE_DYING
-        ):
+        elif self._state in (STATE_LEVEL_COMPLETE, STATE_DYING):
             self.game.update(dt)
             self._check_game_state()
         elif self._state == const.STATE_CHEAT_MENU:
@@ -151,9 +161,7 @@ class App:
             if self._state != STATE_DYING:
                 self._state = STATE_DYING
         elif s == const.STATE_PLAYING:
-            if self._state in (
-                STATE_LEVEL_COMPLETE, STATE_DYING
-            ):
+            if self._state in (STATE_LEVEL_COMPLETE, STATE_DYING):
                 self._transition(const.STATE_PLAYING)
 
     def draw(self) -> None:
@@ -164,9 +172,7 @@ class _GameScreen(Screen):
     def __init__(self, game: Game) -> None:
         self.game = game
 
-    def handle_event(
-        self, event: pygame.event.Event
-    ) -> str | None:
+    def handle_event(self, event: pygame.event.Event) -> str | None:
         return None
 
     def update(self, dt: float) -> str | None:
@@ -175,19 +181,17 @@ class _GameScreen(Screen):
     def draw(self) -> None:
         self.game.draw()
 
+
 # TODO this might have to be ASYNC because of pygbag
 
 
-def pacman(cfg_file_path: str) -> None:
+async def pacman(cfg_file_path: str) -> None:
     cfg = Config()
     if not cfg.read(cfg_file_path):
         exit()
     pygame.init()
     w = (cfg.width * 2 + 1) * const.TILE_SIZE
-    h = (
-        (cfg.height * 2 + 1) * const.TILE_SIZE
-        + const.HUD_HEIGHT
-    )
+    h = (cfg.height * 2 + 1) * const.TILE_SIZE + const.HUD_HEIGHT
     screen = pygame.display.set_mode((w, h), vsync=1)
     pygame.display.set_caption("Pac-Man")
     app = App(cfg, screen)

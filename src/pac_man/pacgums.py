@@ -1,6 +1,5 @@
 import random
-
-import pygame
+from typing import Any
 
 from . import constants as const
 from .maze import Maze
@@ -105,8 +104,10 @@ class Pacgums:
             self._blink_visible = not self._blink_visible
 
     def draw(
-        self, screen: pygame.SurfaceType, offset_y: int = 0
+        self, screen: Any, offset_y: int = 0
     ) -> None:
+        import pygame
+
         half = const.TILE_SIZE // 2
         for (r, c), kind in self.pacgums.items():
             cx = c * const.TILE_SIZE + half

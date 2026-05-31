@@ -1,9 +1,10 @@
 import os
-from pygame import font, SurfaceType
 
 
 class Text:
     def __init__(self) -> None:
+        from pygame import font
+
         self.size: int = 32
         self.path: str | None = self.set_path()
         self.color: tuple[int, int, int] = (255, 255, 255)
@@ -18,5 +19,5 @@ class Text:
         self.path = path
         return self.path
 
-    def render(self, txt: str) -> SurfaceType:
+    def render(self, txt: str):
         return self.font.render(txt, False, self.color)

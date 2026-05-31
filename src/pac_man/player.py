@@ -1,4 +1,6 @@
-import pygame
+from __future__ import annotations
+
+from typing import Any
 
 from . import constants as const
 from .maze import Maze
@@ -14,6 +16,7 @@ DIRECTIONS = {
 
 class Player:
     def __init__(self, maze: Maze) -> None:
+
         self.maze = maze
         self.speed: float = const.PACMAN_SPEED * const.TILE_SIZE
 
@@ -28,7 +31,7 @@ class Player:
 
         ss = SpriteSheet("spritesheet_nopink.png")
         closed = ss.getImageGrid(4, 0)
-        self.frames: dict[str, list[pygame.SurfaceType]] = {
+        self.frames: dict[str, list[Any]] = {
             "left": [
                 closed,
                 ss.getImageGrid(0, 0),
@@ -52,7 +55,7 @@ class Player:
         }
         self.last_dir: str = "right"
         self.anim_time: float = 0.0
-        self.death_frames: list[pygame.SurfaceType] = [
+        self.death_frames: list[Any] = [
             ss.getImageGrid(col, 6) for col in range(11)
         ]
 
@@ -110,7 +113,7 @@ class Player:
         self.direction = None
         self.next_direction = None
 
-    def draw(self, screen: pygame.SurfaceType, offset_y: int = 0) -> None:
+    def draw(self, screen: Any, offset_y: int = 0) -> None:
         if self.direction:
             for name, d in DIRECTIONS.items():
                 if d == self.direction:
@@ -121,7 +124,7 @@ class Player:
         screen.blit(frame, (self.px, self.py + offset_y))
 
     def draw_death(
-        self, screen: pygame.SurfaceType, offset_y: int, progress: float
+        self, screen: Any, offset_y: int, progress: float
     ) -> None:
         idx = min(int(progress * len(self.death_frames)), 10)
         frame = self.death_frames[idx]

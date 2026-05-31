@@ -1,7 +1,9 @@
+from __future__ import annotations
+
+from typing import Any
+
 from abc import ABC, abstractmethod
 import re
-
-import pygame
 
 from . import constants as const
 from .config import Config
@@ -14,9 +16,7 @@ STATE_LEVEL_COMPLETE = "level_complete"
 
 class Screen(ABC):
     @abstractmethod
-    def handle_event(
-        self, event: pygame.event.Event
-    ) -> str | None:
+    def handle_event(self, event: Any) -> str | None:
         """Return new state name or None."""
 
     @abstractmethod
@@ -31,7 +31,7 @@ class Screen(ABC):
 class TitleScreen(Screen):
     def __init__(
         self,
-        screen: pygame.SurfaceType,
+        screen: Any,
         font: Text,
         small_font: Text,
         highscore: Highscore,
@@ -50,19 +50,15 @@ class TitleScreen(Screen):
         self._blink_timer: float = 0.0
         self._blink_visible: bool = True
 
-    def handle_event(
-        self, event: pygame.event.Event
-    ) -> str | None:
+    def handle_event(self, event: Any) -> str | None:
+        import pygame
+
         if event.type != pygame.KEYDOWN:
             return None
         if event.key in (pygame.K_UP, pygame.K_w):
-            self._selected = (self._selected - 1) % len(
-                self._options
-            )
+            self._selected = (self._selected - 1) % len(self._options)
         elif event.key in (pygame.K_DOWN, pygame.K_s):
-            self._selected = (self._selected + 1) % len(
-                self._options
-            )
+            self._selected = (self._selected + 1) % len(self._options)
         elif event.key == pygame.K_RETURN:
             if self._selected == 0:
                 return const.STATE_WAITING
@@ -86,9 +82,7 @@ class TitleScreen(Screen):
         w = self.screen.get_width()
         h = self.screen.get_height()
         title = self.font.render("PAC-MAN")
-        self.screen.blit(
-            title, ((w - title.get_width()) // 2, h // 6)
-        )
+        self.screen.blit(title, ((w - title.get_width()) // 2, h // 6))
         for i, opt in enumerate(self._options):
             color = (
                 const.COLOR_YELLOW
@@ -103,28 +97,21 @@ class TitleScreen(Screen):
         self.font.color = const.COLOR_WHITE
         if self.highscore.entries:
             hs = self.small_font.render("TOP SCORES")
-            self.screen.blit(
-                hs, ((w - hs.get_width()) // 2, h * 3 // 4)
-            )
-            for i, entry in enumerate(
-                self.highscore.entries[:3]
-            ):
+            self.screen.blit(hs, ((w - hs.get_width()) // 2, h * 3 // 4))
+            for i, entry in enumerate(self.highscore.entries[:3]):
                 name = entry["name"]
                 score = entry["score"]
-                line = self.small_font.render(
-                    f"{i + 1}. {name} {score}"
-                )
+                line = self.small_font.render(f"{i + 1}. {name} {score}")
                 self.screen.blit(
                     line,
-                    ((w - line.get_width()) // 2,
-                     h * 3 // 4 + 25 + i * 22),
+                    ((w - line.get_width()) // 2, h * 3 // 4 + 25 + i * 22),
                 )
 
 
 class WaitingScreen(Screen):
     def __init__(
         self,
-        screen: pygame.SurfaceType,
+        screen: Any,
         font: Text,
         game: Game,
     ) -> None:
@@ -134,11 +121,10 @@ class WaitingScreen(Screen):
         self._blink_timer: float = 0.0
         self._blink_visible: bool = True
 
-    def handle_event(
-        self, event: pygame.event.Event
-    ) -> str | None:
-        if (event.type == pygame.KEYDOWN
-                and event.key == pygame.K_SPACE):
+    def handle_event(self, event: Any) -> str | None:
+        import pygame
+
+        if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
             return const.STATE_PLAYING
         return None
 
@@ -155,15 +141,13 @@ class WaitingScreen(Screen):
             w = self.screen.get_width()
             h = self.screen.get_height()
             surf = self.font.render("PRESS SPACE")
-            self.screen.blit(
-                surf, ((w - surf.get_width()) // 2, h // 2)
-            )
+            self.screen.blit(surf, ((w - surf.get_width()) // 2, h // 2))
 
 
 class PauseScreen(Screen):
     def __init__(
         self,
-        screen: pygame.SurfaceType,
+        screen: Any,
         font: Text,
         game: Game,
         cfg: Config,
@@ -173,9 +157,9 @@ class PauseScreen(Screen):
         self.game = game
         self.cfg = cfg
 
-    def handle_event(
-        self, event: pygame.event.Event
-    ) -> str | None:
+    def handle_event(self, event: Any) -> str | None:
+        import pygame
+
         if event.type != pygame.KEYDOWN:
             return None
         if event.key == pygame.K_SPACE:
@@ -183,8 +167,7 @@ class PauseScreen(Screen):
             return const.STATE_PLAYING
         elif event.key == pygame.K_ESCAPE:
             return const.STATE_TITLE
-        elif (event.key == pygame.K_c
-              and self.cfg.cheat):
+        elif event.key == pygame.K_c and self.cfg.cheat:
             self.game.state = const.STATE_CHEAT_MENU
             return const.STATE_CHEAT_MENU
         return None
@@ -193,6 +176,8 @@ class PauseScreen(Screen):
         return None
 
     def draw(self) -> None:
+        import pygame
+
         self.game.draw()
         w = self.screen.get_width()
         h = self.screen.get_height()
@@ -201,29 +186,22 @@ class PauseScreen(Screen):
         overlay.fill((0, 0, 0))
         self.screen.blit(overlay, (0, 0))
         pause = self.font.render("PAUSED")
-        self.screen.blit(
-            pause, ((w - pause.get_width()) // 2, h // 3)
-        )
+        self.screen.blit(pause, ((w - pause.get_width()) // 2, h // 3))
         resume = self.font.render("SPACE - RESUME")
-        self.screen.blit(
-            resume, ((w - resume.get_width()) // 2, h // 2)
-        )
+        self.screen.blit(resume, ((w - resume.get_width()) // 2, h // 2))
         menu = self.font.render("ESC - MENU")
-        self.screen.blit(
-            menu, ((w - menu.get_width()) // 2, h // 2 + 30)
-        )
+        self.screen.blit(menu, ((w - menu.get_width()) // 2, h // 2 + 30))
         if self.cfg.cheat:
             cheats = self.font.render("C - CHEATS")
             self.screen.blit(
-                cheats,
-                ((w - cheats.get_width()) // 2, h // 2 + 60)
+                cheats, ((w - cheats.get_width()) // 2, h // 2 + 60)
             )
 
 
 class CheatMenuScreen(Screen):
     def __init__(
         self,
-        screen: pygame.SurfaceType,
+        screen: Any,
         font: Text,
         small_font: Text,
         game: Game,
@@ -241,18 +219,16 @@ class CheatMenuScreen(Screen):
             ("Always Fright", "always_fright"),
         ]
 
-    def handle_event(
-        self, event: pygame.event.Event
-    ) -> str | None:
+    def handle_event(self, event: Any) -> str | None:
+        import pygame
+
         if event.type != pygame.KEYDOWN:
             return None
         if event.key == pygame.K_ESCAPE:
             self.game.state = const.STATE_PAUSE
             return const.STATE_PAUSE
         for i in range(len(self._options)):
-            if event.key in (
-                pygame.K_1 + i, pygame.K_KP1 + i
-            ):
+            if event.key in (pygame.K_1 + i, pygame.K_KP1 + i):
                 self._apply(i)
                 break
         return None
@@ -274,12 +250,15 @@ class CheatMenuScreen(Screen):
 
     def update(self, dt: float) -> str | None:
         if self.game.state in (
-            const.STATE_VICTORY, STATE_LEVEL_COMPLETE,
+            const.STATE_VICTORY,
+            STATE_LEVEL_COMPLETE,
         ):
             return const.STATE_CHEAT_MENU
         return None
 
     def draw(self) -> None:
+        import pygame
+
         self.game.draw()
         w = self.screen.get_width()
         h = self.screen.get_height()
@@ -288,41 +267,27 @@ class CheatMenuScreen(Screen):
         overlay.fill((0, 0, 0))
         self.screen.blit(overlay, (0, 0))
         title = self.font.render("CHEATS")
-        self.screen.blit(
-            title, ((w - title.get_width()) // 2, h // 6)
-        )
+        self.screen.blit(title, ((w - title.get_width()) // 2, h // 6))
         y = h // 3
-        for i, (name, toggle) in enumerate(
-            self._options
-        ):
-            active = (
-                toggle is not None
-                and getattr(self.game.cheats, toggle)
-            )
-            color = (
-                const.COLOR_YELLOW if active
-                else const.COLOR_WHITE
-            )
+        for i, (name, toggle) in enumerate(self._options):
+            active = toggle is not None and getattr(self.game.cheats, toggle)
+            color = const.COLOR_YELLOW if active else const.COLOR_WHITE
             self.small_font.color = color
             label = f"{i + 1} - {name.upper()}"
             if toggle is not None:
                 label += " [ON]" if active else " [OFF]"
             surf = self.small_font.render(label)
-            self.screen.blit(
-                surf, ((w - surf.get_width()) // 2, y)
-            )
+            self.screen.blit(surf, ((w - surf.get_width()) // 2, y))
             y += 28
         self.small_font.color = const.COLOR_WHITE
         back = self.small_font.render("ESC - BACK")
-        self.screen.blit(
-            back, ((w - back.get_width()) // 2, y + 20)
-        )
+        self.screen.blit(back, ((w - back.get_width()) // 2, y + 20))
 
 
 class GameOverScreen(Screen):
     def __init__(
         self,
-        screen: pygame.SurfaceType,
+        screen: Any,
         font: Text,
         game: Game,
     ) -> None:
@@ -330,11 +295,10 @@ class GameOverScreen(Screen):
         self.font = font
         self.game = game
 
-    def handle_event(
-        self, event: pygame.event.Event
-    ) -> str | None:
-        if (event.type == pygame.KEYDOWN
-                and event.key == pygame.K_RETURN):
+    def handle_event(self, event: Any) -> str | None:
+        import pygame
+
+        if event.type == pygame.KEYDOWN and event.key == pygame.K_RETURN:
             return const.STATE_NAME_ENTRY
         return None
 
@@ -346,12 +310,8 @@ class GameOverScreen(Screen):
         w = self.screen.get_width()
         h = self.screen.get_height()
         go = self.font.render("GAME OVER")
-        self.screen.blit(
-            go, ((w - go.get_width()) // 2, h // 3)
-        )
-        score = self.font.render(
-            f"SCORE: {self.game.score}"
-        )
+        self.screen.blit(go, ((w - go.get_width()) // 2, h // 3))
+        score = self.font.render(f"SCORE: {self.game.score}")
         self.screen.blit(
             score,
             ((w - score.get_width()) // 2, h // 3 + 40),
@@ -366,7 +326,7 @@ class GameOverScreen(Screen):
 class VictoryScreen(Screen):
     def __init__(
         self,
-        screen: pygame.SurfaceType,
+        screen: Any,
         font: Text,
         game: Game,
     ) -> None:
@@ -374,11 +334,10 @@ class VictoryScreen(Screen):
         self.font = font
         self.game = game
 
-    def handle_event(
-        self, event: pygame.event.Event
-    ) -> str | None:
-        if (event.type == pygame.KEYDOWN
-                and event.key == pygame.K_RETURN):
+    def handle_event(self, event: Any) -> str | None:
+        import pygame
+
+        if event.type == pygame.KEYDOWN and event.key == pygame.K_RETURN:
             return const.STATE_NAME_ENTRY
         return None
 
@@ -390,12 +349,8 @@ class VictoryScreen(Screen):
         w = self.screen.get_width()
         h = self.screen.get_height()
         win = self.font.render("YOU WIN!")
-        self.screen.blit(
-            win, ((w - win.get_width()) // 2, h // 3)
-        )
-        score = self.font.render(
-            f"SCORE: {self.game.score}"
-        )
+        self.screen.blit(win, ((w - win.get_width()) // 2, h // 3))
+        score = self.font.render(f"SCORE: {self.game.score}")
         self.screen.blit(
             score,
             ((w - score.get_width()) // 2, h // 3 + 40),
@@ -410,7 +365,7 @@ class VictoryScreen(Screen):
 class NameEntryScreen(Screen):
     def __init__(
         self,
-        screen: pygame.SurfaceType,
+        screen: Any,
         font: Text,
         small_font: Text,
         highscore: Highscore,
@@ -425,9 +380,9 @@ class NameEntryScreen(Screen):
         self._cursor_timer: float = 0.0
         self._cursor_visible: bool = True
 
-    def handle_event(
-        self, event: pygame.event.Event
-    ) -> str | None:
+    def handle_event(self, event: Any) -> str | None:
+        import pygame
+
         if event.type != pygame.KEYDOWN:
             return None
         if event.key == pygame.K_RETURN:
@@ -467,9 +422,7 @@ class NameEntryScreen(Screen):
             name_surf,
             ((w - name_surf.get_width()) // 2, h // 3),
         )
-        score_surf = self.font.render(
-            f"SCORE: {self.score}"
-        )
+        score_surf = self.font.render(f"SCORE: {self.score}")
         self.screen.blit(
             score_surf,
             ((w - score_surf.get_width()) // 2, h // 3 + 40),
@@ -479,24 +432,20 @@ class NameEntryScreen(Screen):
             hs_title,
             ((w - hs_title.get_width()) // 2, h // 2),
         )
-        for i, entry in enumerate(
-            self.highscore.entries[:10]
-        ):
+        for i, entry in enumerate(self.highscore.entries[:10]):
             line = self.small_font.render(
-                f"{i + 1}. {entry['name']:>10}"
-                f" {entry['score']}"
+                f"{i + 1}. {entry['name']:>10} {entry['score']}"
             )
             self.screen.blit(
                 line,
-                ((w - line.get_width()) // 2,
-                 h // 2 + 25 + i * 20),
+                ((w - line.get_width()) // 2, h // 2 + 25 + i * 20),
             )
 
 
 class HighscoresScreen(Screen):
     def __init__(
         self,
-        screen: pygame.SurfaceType,
+        screen: Any,
         font: Text,
         highscore: Highscore,
     ) -> None:
@@ -504,12 +453,13 @@ class HighscoresScreen(Screen):
         self.font = font
         self.highscore = highscore
 
-    def handle_event(
-        self, event: pygame.event.Event
-    ) -> str | None:
-        if (event.type == pygame.KEYDOWN
-                and event.key in (
-                    pygame.K_ESCAPE, pygame.K_RETURN)):
+    def handle_event(self, event: Any) -> str | None:
+        import pygame
+
+        if event.type == pygame.KEYDOWN and event.key in (
+            pygame.K_ESCAPE,
+            pygame.K_RETURN,
+        ):
             return const.STATE_TITLE
         return None
 
@@ -521,14 +471,12 @@ class HighscoresScreen(Screen):
         h = self.screen.get_height()
         title = self.font.render("HIGHSCORES")
         self.screen.blit(
-            title, ((w - title.get_width()) // 2, 20),
+            title,
+            ((w - title.get_width()) // 2, 20),
         )
-        for i, entry in enumerate(
-            self.highscore.entries[:10]
-        ):
+        for i, entry in enumerate(self.highscore.entries[:10]):
             line = self.font.render(
-                f"{i + 1}. {entry['name']:>10}"
-                f" {entry['score']}"
+                f"{i + 1}. {entry['name']:>10} {entry['score']}"
             )
             self.screen.blit(
                 line,
@@ -544,7 +492,7 @@ class HighscoresScreen(Screen):
 class InstructionsScreen(Screen):
     def __init__(
         self,
-        screen: pygame.SurfaceType,
+        screen: Any,
         font: Text,
     ) -> None:
         self.screen = screen
@@ -567,12 +515,13 @@ class InstructionsScreen(Screen):
             "  TO WIN THE GAME",
         ]
 
-    def handle_event(
-        self, event: pygame.event.Event
-    ) -> str | None:
-        if (event.type == pygame.KEYDOWN
-                and event.key in (
-                    pygame.K_ESCAPE, pygame.K_RETURN)):
+    def handle_event(self, event: Any) -> str | None:
+        import pygame
+
+        if event.type == pygame.KEYDOWN and event.key in (
+            pygame.K_ESCAPE,
+            pygame.K_RETURN,
+        ):
             return const.STATE_TITLE
         return None
 
