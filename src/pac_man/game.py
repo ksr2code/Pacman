@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 from dataclasses import dataclass
+import pygame
 
 from . import constants as const
 from .config import Config
@@ -36,8 +37,6 @@ class Game:
     _ghost_ss: SpriteSheet | None = None
 
     def __init__(self, cfg: Config, screen: Any) -> None:
-        import pygame
-
         self.cfg = cfg
         self.screen = screen
         self.score: int = 0
@@ -73,8 +72,6 @@ class Game:
         self._init_level(cfg.seed)
 
     def _init_level(self, seed: int) -> None:
-        import pygame
-
         self.maze = Maze(self.screen, self.cfg, seed=seed)
         if not hasattr(self, "player") or self.player is None:
             self.player = Player(self.maze)
@@ -149,7 +146,6 @@ class Game:
         return Game._ghost_ss
 
     def handle_event(self, event: Any) -> None:
-        import pygame
 
         if event.type != pygame.KEYDOWN:
             return

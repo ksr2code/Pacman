@@ -1,9 +1,10 @@
 from __future__ import annotations
 
 from typing import Any
-
 from abc import ABC, abstractmethod
 import re
+
+import pygame
 
 from . import constants as const
 from .config import Config
@@ -51,7 +52,6 @@ class TitleScreen(Screen):
         self._blink_visible: bool = True
 
     def handle_event(self, event: Any) -> str | None:
-        import pygame
 
         if event.type != pygame.KEYDOWN:
             return None
@@ -122,7 +122,6 @@ class WaitingScreen(Screen):
         self._blink_visible: bool = True
 
     def handle_event(self, event: Any) -> str | None:
-        import pygame
 
         if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
             return const.STATE_PLAYING
@@ -158,7 +157,6 @@ class PauseScreen(Screen):
         self.cfg = cfg
 
     def handle_event(self, event: Any) -> str | None:
-        import pygame
 
         if event.type != pygame.KEYDOWN:
             return None
@@ -176,7 +174,6 @@ class PauseScreen(Screen):
         return None
 
     def draw(self) -> None:
-        import pygame
 
         self.game.draw()
         w = self.screen.get_width()
@@ -220,7 +217,6 @@ class CheatMenuScreen(Screen):
         ]
 
     def handle_event(self, event: Any) -> str | None:
-        import pygame
 
         if event.type != pygame.KEYDOWN:
             return None
@@ -257,7 +253,6 @@ class CheatMenuScreen(Screen):
         return None
 
     def draw(self) -> None:
-        import pygame
 
         self.game.draw()
         w = self.screen.get_width()
@@ -296,7 +291,6 @@ class GameOverScreen(Screen):
         self.game = game
 
     def handle_event(self, event: Any) -> str | None:
-        import pygame
 
         if event.type == pygame.KEYDOWN and event.key == pygame.K_RETURN:
             return const.STATE_NAME_ENTRY
@@ -335,7 +329,6 @@ class VictoryScreen(Screen):
         self.game = game
 
     def handle_event(self, event: Any) -> str | None:
-        import pygame
 
         if event.type == pygame.KEYDOWN and event.key == pygame.K_RETURN:
             return const.STATE_NAME_ENTRY
@@ -381,7 +374,6 @@ class NameEntryScreen(Screen):
         self._cursor_visible: bool = True
 
     def handle_event(self, event: Any) -> str | None:
-        import pygame
 
         if event.type != pygame.KEYDOWN:
             return None
@@ -454,7 +446,6 @@ class HighscoresScreen(Screen):
         self.highscore = highscore
 
     def handle_event(self, event: Any) -> str | None:
-        import pygame
 
         if event.type == pygame.KEYDOWN and event.key in (
             pygame.K_ESCAPE,
@@ -516,7 +507,6 @@ class InstructionsScreen(Screen):
         ]
 
     def handle_event(self, event: Any) -> str | None:
-        import pygame
 
         if event.type == pygame.KEYDOWN and event.key in (
             pygame.K_ESCAPE,

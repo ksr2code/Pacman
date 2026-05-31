@@ -21,7 +21,7 @@ dev = [
 ]
 
 [tool.uv.sources]
-mazegenerator = { path = "packages/mazegenerator-00001-py3-none-any.whl" }
+mazegenerator = { path = "src/packages/mazegenerator-00001-py3-none-any.whl" }
 
 [project.scripts]
 pac-man = "pac_man:main"

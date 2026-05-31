@@ -3,6 +3,8 @@ from __future__ import annotations
 import os
 from typing import Any
 
+import pygame
+
 
 class SpriteSheet:
     DIR_ROW = {
@@ -13,7 +15,6 @@ class SpriteSheet:
     }
 
     def __init__(self, filename: str = "pacman.png") -> None:
-        import pygame
 
         sprite_path = os.path.join(
             os.path.dirname(os.path.abspath(__file__)),
@@ -22,13 +23,11 @@ class SpriteSheet:
         self.sheet: Any = pygame.image.load(sprite_path).convert_alpha()
 
     def getImage(self, x: int, y: int):
-        import pygame
 
         self.sheet.set_clip(pygame.Rect(x, y, 32, 32))
         return self.sheet.subsurface(self.sheet.get_clip()).copy()
 
     def getImageGrid(self, col: int, row: int):
-        import pygame
 
         return self.sheet.subsurface(
             pygame.Rect(col * 32, row * 32, 32, 32)

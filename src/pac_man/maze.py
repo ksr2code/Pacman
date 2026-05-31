@@ -1,6 +1,7 @@
 """
 The original Pacman had 28x36 cells (including the walls)
 """
+
 from typing import Any
 import pygame
 

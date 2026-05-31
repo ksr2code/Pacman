@@ -3,6 +3,8 @@ import random
 from collections import deque
 from typing import Any
 
+import pygame
+
 from . import constants as const
 from .maze import Maze
 from .sprites import SpriteSheet
@@ -198,7 +200,6 @@ class Ghost:
         offset_y: int = 0,
         freight_timer: float = 0.0,
     ) -> None:
-        import pygame
 
         if self._ss is None:
             half = const.TILE_SIZE // 2

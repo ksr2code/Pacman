@@ -1,6 +1,8 @@
 import random
 from typing import Any
 
+import pygame
+
 from . import constants as const
 from .maze import Maze
 from .sound import Sound
@@ -25,9 +27,7 @@ class Pacgums:
             Sound("eat_dot_1.ogg"),
         ]
         self._eat_idx: int = 0
-        self._fruit_sprites: dict[
-            tuple[int, int], Any
-        ] = {}
+        self._fruit_sprites: dict[tuple[int, int], Any] = {}
         self._ss = spritesheet
         rows = len(maze.out)
         cols = len(maze.out[0])
@@ -35,8 +35,7 @@ class Pacgums:
             for c in range(1, cols, 2):
                 if (r, c) in exclude:
                     continue
-                if (maze.out[r][c] is None
-                        and self._has_exit(maze, r, c)):
+                if maze.out[r][c] is None and self._has_exit(maze, r, c):
                     self.pacgums[(r, c)] = "pacgum"
         self._place_super(maze)
 
@@ -60,9 +59,7 @@ class Pacgums:
                 if self._ss is not None:
                     col = random.choice(FRUIT_COLS)
                     row = random.choice(FRUIT_ROWS)
-                    self._fruit_sprites[pos] = (
-                        self._ss.getImageGrid(col, row)
-                    )
+                    self._fruit_sprites[pos] = self._ss.getImageGrid(col, row)
 
     def _bfs_walkable(
         self, maze: Maze, sr: int, sc: int
@@ -103,10 +100,7 @@ class Pacgums:
             self._blink_timer = 0.0
             self._blink_visible = not self._blink_visible
 
-    def draw(
-        self, screen: Any, offset_y: int = 0
-    ) -> None:
-        import pygame
+    def draw(self, screen: Any, offset_y: int = 0) -> None:
 
         half = const.TILE_SIZE // 2
         for (r, c), kind in self.pacgums.items():
@@ -118,15 +112,17 @@ class Pacgums:
                     if sprite:
                         screen.blit(
                             sprite,
-                            (c * const.TILE_SIZE,
-                             r * const.TILE_SIZE + offset_y),
+                            (
+                                c * const.TILE_SIZE,
+                                r * const.TILE_SIZE + offset_y,
+                            ),
                         )
                     else:
                         pygame.draw.circle(
-                            screen, (255, 255, 255),
-                            (cx, cy), 8,
+                            screen,
+                            (255, 255, 255),
+                            (cx, cy),
+                            8,
                         )
             else:
-                pygame.draw.circle(
-                    screen, (255, 255, 255), (cx, cy), 3
-                )
+                pygame.draw.circle(screen, (255, 255, 255), (cx, cy), 3)
