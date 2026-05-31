@@ -5,7 +5,6 @@ The original Pacman had 28x36 cells (including the walls)
 from typing import Any
 import pygame
 
-from mazegenerator.mazegenerator import MazeGenerator
 from .config import Config
 from .sprites import SpriteSheet
 
@@ -21,6 +20,13 @@ class Maze:
         conf: Config,
         seed: int | None = None,
     ) -> None:
+        # Use importlib to hide from pygbag static analysis
+        import importlib
+
+        MazeGenerator = importlib.import_module(
+            "mazegenerator.mazegenerator"
+        ).MazeGenerator
+
         self.seed = seed if seed is not None else conf.seed
         self.screen = screen
         self.TILE_SIZE = 32

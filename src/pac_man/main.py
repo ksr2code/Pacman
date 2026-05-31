@@ -1,3 +1,10 @@
+"""
+---
+requires-python = ">=3.12"
+dependencies = ["pygame-ce", "mazegenerator"]
+---
+"""
+
 import time
 from typing import Any
 import pygame
