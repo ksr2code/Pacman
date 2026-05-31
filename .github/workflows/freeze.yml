@@ -1,0 +1,22 @@
+name: Freeze Check
+
+on:
+  pull_request:
+  push:
+
+jobs:
+  freeze:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check freeze status
+        run: |
+          if [ -f .freeze ]; then
+            echo "🚫 Repo is frozen by Andrei"; \
+            echo "Repository is currently frozen for compatibility updates."; \
+            echo "I need to make some major changes to enable compatibility with WASM"; \
+            echo "This is requiered by itch.io to run the game in browser"; \
+            exit 1
+          fi

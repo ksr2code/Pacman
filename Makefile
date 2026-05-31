@@ -1,8 +1,6 @@
 .PHONY: install run debug clean lint lint-strict test re push
 export UV_SKIP_WHEEL_FILENAME_CHECK=1
 
-# Add a temporary lock
-export PRE_COMMIT=1
 
 ifneq (,$(wildcard ./.env))
     include .env
@@ -14,31 +12,22 @@ PY_FILES := pac-man.py $(shell find src -name '*.py' -type f)
 GREEN := \033[0;32mOK\033[0m
 RED := \033[0;31mKO\033[0m
 
-precheck:
-	@if [ "$$PRE_COMMIT" = "1" ]; then \
-		echo "🚫 Repo is frozen by Andrei"; \
-		echo "Repository is currently frozen for compatibility updates."; \
-		echo "I need to make some major changes to enable compatibility with WASM"; \
-		echo "This is requiered by itch.io to run the game in browser"; \
-		exit 1; \
-	fi
-
-install: precheck
+install:
 	uv sync --python 3.12 --all-extras
 	uv tool install --upgrade pygbag
 
 # use this to create the WebAssembly for itch.io
-build: precheck
+build:
 # 	uv run pygbag --disable-sound-format-error --no_opt pac-man.py
 	pygbag --disable-sound-format-error --no_opt --cdn https://pygame-web.github.io/archives/0.8/ --build --html pac-man.py
 
-run: precheck
+run:
 	uv run pac-man.py $(ARGS)
 
-debug: precheck
+debug:
 	uv run python3 -m pdb pac-man.py $(ARGS)
 
-clean: precheck
+clean:
 	find . -type d -name __pycache__ -exec rm -rf {} +
 	find . -type d -name .mypy_cache -exec rm -rf {} +
 	find . -type d -name .venv -exec rm -rf {} +
@@ -50,11 +39,11 @@ clean: precheck
 	find . -name "*.pyo" -delete
 
 # use this target to run the unit tests
-test: precheck
+test:
 	pytest test -vv
 	@echo "WHEN PROJECT IF FINISHED REMOVE THE TEST FOLDER"
 
-lint: precheck
+lint:
 	uv run flake8 $(PY_FILES)
 	uv run mypy $(PY_FILES) \
 		--explicit-package-bases \
@@ -65,7 +54,7 @@ lint: precheck
 		--check-untyped-defs \
 		--exclude '(^\.venv/)'
 
-lint-strict: precheck
+lint-strict:
 	uv run flake8 $(PY_FILES)
 	uv run mypy $(PY_FILES)\
 		--explicit-package-bases \
