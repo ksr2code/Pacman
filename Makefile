@@ -13,11 +13,11 @@ RED := \033[0;31mKO\033[0m
 
 install:
 	uv sync --python 3.12 --all-extras
-	uv tool install --upgrade pygbag
+	uv tool install pygbag
 
 # use this to create the WebAssembly for itch.io
 build:
-	pygbag --disable-sound-format-error --no_opt --cdn https://pygame-web.github.io/archives/0.8/ src/pac_man/
+	pygbag --disable-sound-format-error src/pac_man/
 
 run:
 	uv run pac-man

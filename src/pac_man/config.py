@@ -1,7 +1,7 @@
+from __future__ import annotations
 import json
+from dataclasses import dataclass
 
-from pydantic import BaseModel, ConfigDict, model_validator
-from typing_extensions import Self
 
 _CLAMPS: list[tuple[str, int]] = [
     ("width", 5),
@@ -17,14 +17,14 @@ _CLAMPS: list[tuple[str, int]] = [
 
 def _strip_comments(text: str) -> str:
     return "\n".join(
-        line for line in text.split("\n")
+        line
+        for line in text.split("\n")
         if not line.lstrip().startswith(("#", "//"))
     )
 
 
-class ConfigData(BaseModel):
-    model_config = ConfigDict(extra="ignore")
-
+@dataclass
+class ConfigData:
     highscore_filename: str = "highscore.json"
     width: int = 14
     height: int = 18
@@ -35,30 +35,38 @@ class ConfigData(BaseModel):
     points_per_ghost: int = 200
     seed: int = 42
     level_max_time: int = 90
-    cheat: bool = False
-
-    @model_validator(mode="after")  # type: ignore[arg-type]
-    def _clamp_values(self) -> Self:
-        for name, minimum in _CLAMPS:
-            value = getattr(self, name)
-            if value < minimum:
-                print(f"Warning: clamping {name} from {value} to {minimum}")
-                object.__setattr__(self, name, minimum)
-        return self
 
 
 class Config:
     def __init__(self) -> None:
-        self.data: ConfigData
+        self.data: ConfigData | None = None
+
+    def _clamp_values(self, data: ConfigData) -> ConfigData:
+        for name, minimum in _CLAMPS:
+            value = getattr(data, name)
+            if value < minimum:
+                print(f"Warning: clamping {name} from {value} to {minimum}")
+                setattr(data, name, minimum)
+        return data
 
     def read(self, file: str) -> bool:
         """Load and validate config file. Returns True on success."""
         try:
             with open(file) as fp:
                 raw = fp.read()
+
             parsed = json.loads(_strip_comments(raw))
-            self.data = ConfigData(**parsed)
+
+            # only accept known fields (equivalent to extra="ignore")
+            allowed = ConfigData().__dict__.keys()
+            filtered = {k: v for k, v in parsed.items() if k in allowed}
+
+            data = ConfigData(**filtered)
+            data = self._clamp_values(data)
+
+            self.data = data
             return True
+
         except FileNotFoundError:
             print(f"Error: Config file '{file}' not found")
             return False
@@ -69,46 +77,44 @@ class Config:
             print(f"Error: Invalid config - {e}")
             return False
 
+    # ---------- property passthroughs ----------
+
     @property
     def width(self) -> int:
-        return self.data.width
+        return self.data.width  # type: ignore[union-attr]
 
     @property
     def height(self) -> int:
-        return self.data.height
+        return self.data.height  # type: ignore[union-attr]
 
     @property
     def seed(self) -> int:
-        return self.data.seed
+        return self.data.seed  # type: ignore[union-attr]
 
     @property
     def lives(self) -> int:
-        return self.data.lives
+        return self.data.lives  # type: ignore[union-attr]
 
     @property
     def highscore_filename(self) -> str:
-        return self.data.highscore_filename
+        return self.data.highscore_filename  # type: ignore[union-attr]
 
     @property
     def pacgum(self) -> int:
-        return self.data.pacgum
+        return self.data.pacgum  # type: ignore[union-attr]
 
     @property
     def points_per_pacgum(self) -> int:
-        return self.data.points_per_pacgum
+        return self.data.points_per_pacgum  # type: ignore[union-attr]
 
     @property
     def points_per_super_pacgum(self) -> int:
-        return self.data.points_per_super_pacgum
+        return self.data.points_per_super_pacgum  # type: ignore[union-attr]
 
     @property
     def points_per_ghost(self) -> int:
-        return self.data.points_per_ghost
+        return self.data.points_per_ghost  # type: ignore[union-attr]
 
     @property
     def level_max_time(self) -> int:
-        return self.data.level_max_time
-
-    @property
-    def cheat(self) -> bool:
-        return self.data.cheat
+        return self.data.level_max_time  # type: ignore[union-attr]

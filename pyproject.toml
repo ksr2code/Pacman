@@ -1,19 +1,16 @@
 [project]
 name = "pac-man"
-version = "0.1.0"
+version = "0.2.0"
 description = "Pacman 42 School project"
 readme = "README.md"
 authors = [
     { name = "Kaisar Smailov", email = "ksmailov@student.42heilbronn.de" },
     { name = "Andrei-Olimpiu Balcu", email = "abalcu@student.42heilbronn.de" }
 ]
-requires-python = ">=3.10"
+requires-python = ">=3.12"
 dependencies = [
-    "numpy",
-    "pydantic>=2.11",
-    "typing_extensions>=4.7.0",
     "mazegenerator",
-    "pygame",
+    "pygame-ce",
 ]
 
 [project.optional-dependencies]
