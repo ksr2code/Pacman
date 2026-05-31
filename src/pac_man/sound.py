@@ -1,57 +1,27 @@
 import os
+from typing import Any
+
+from pygame import mixer
 
 
 class Sound:
-    _mixer_ready = False
-
     def __init__(self, sound_file: str) -> None:
-        self._path = self._set_path(sound_file)
-        self._sound = None
+
+        self._path: str = self._set_path(sound_file)
+        self._sound: Any = mixer.Sound(self._path)
 
     def _set_path(self, sound_file: str) -> str:
         return os.path.join(
             os.path.dirname(os.path.abspath(__file__)),
-            "../assets/sounds",
-            sound_file,
+            f"../assets/sounds/{sound_file}",
         )
 
-    @classmethod
-    def init_mixer(cls) -> None:
-        if cls._mixer_ready:
-            return
+    def play(self, loops: int = 0) -> None:
+        if self._sound:
+            mixer.Sound.play(self._sound, loops=loops)
+        else:
+            raise FileNotFoundError(f"Missing sound file {self._path}")
 
-        try:
-            import pygame
-
-            pygame.mixer.init()
-            cls._mixer_ready = True
-
-        except Exception as e:
-            print(f"Could not initialize mixer: {e}")
-
-    def _load(self) -> None:
-        if self._sound is not None:
-            return
-
-        try:
-            from pygame import mixer
-
-            self._sound = mixer.Sound(self._path)
-
-        except Exception as e:
-            print(f"Could not load sound {self._path}: {e}")
-
-    def play(self) -> None:
-        self.init_mixer()
-
-        if not self._mixer_ready:
-            return
-
-        self._load()
-
-        if self._sound is not None:
-            try:
-                self._sound.play()
-
-            except Exception as e:
-                print(f"Could not play sound: {e}")
+    def stop(self) -> None:
+        if self._sound:
+            mixer.Sound.stop(self._sound)

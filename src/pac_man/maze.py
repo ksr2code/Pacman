@@ -1,9 +1,9 @@
 """
 The original Pacman had 28x36 cells (including the walls)
 """
-
-from pygame import SurfaceType
+from typing import Any
 import pygame
+
 from mazegenerator.mazegenerator import MazeGenerator
 from .config import Config
 from .sprites import SpriteSheet
@@ -16,7 +16,7 @@ class Maze:
 
     def __init__(
         self,
-        screen: SurfaceType,
+        screen: Any,
         conf: Config,
         seed: int | None = None,
     ) -> None:
@@ -32,7 +32,7 @@ class Maze:
             print(f"Error initializing maze: {e}")
             raise
 
-    def _build_maze(self) -> list[list[SurfaceType | None]]:
+    def _build_maze(self) -> list[list[Any | None]]:
         sprite = SpriteSheet("maze.png")
 
         N = 0b0001
@@ -53,7 +53,7 @@ class Maze:
 
         m_h = len(self.maze.maze)
         m_w = len(self.maze.maze[0])
-        out: list[list[SurfaceType | None]] = [
+        out: list[list[Any | None]] = [
             [None for _ in range(m_w * 2 + 1)] for _ in range(m_h * 2 + 1)
         ]
 
@@ -94,7 +94,7 @@ class Maze:
 
         return out
 
-    def _render_maze_to_surface(self) -> SurfaceType:
+    def _render_maze_to_surface(self):
         """Pre-render entire maze to a single surface for faster blitting."""
         m_h = len(self.maze.maze)
         m_w = len(self.maze.maze[0])

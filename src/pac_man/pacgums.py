@@ -26,7 +26,7 @@ class Pacgums:
         ]
         self._eat_idx: int = 0
         self._fruit_sprites: dict[
-            tuple[int, int], pygame.SurfaceType
+            tuple[int, int], Any
         ] = {}
         self._ss = spritesheet
         rows = len(maze.out)
