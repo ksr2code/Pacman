@@ -1,35 +1,23 @@
 [project]
 name = "pac-man"
-version = "0.1.0"
+version = "0.3.0"
 description = "Pacman 42 School project"
 readme = "README.md"
 authors = [
     { name = "Kaisar Smailov", email = "ksmailov@student.42heilbronn.de" },
     { name = "Andrei-Olimpiu Balcu", email = "abalcu@student.42heilbronn.de" }
 ]
-requires-python = ">=3.10"
+requires-python = ">=3.12"
 dependencies = [
-    "numpy",
-    "pydantic>=2.11",
-    "typing_extensions>=4.7.0",
-    "mazegenerator",
-    "pygame",
-    "pygbag",
-]
-
-[project.optional-dependencies]
-dev = [
     "flake8",
     "mypy",
     "pytest>=9.0.2",
+    "pygame-ce",
+    "mazegenerator",
 ]
 
 [tool.uv.sources]
 mazegenerator = { path = "packages/mazegenerator-00001-py3-none-any.whl" }
 
-[project.scripts]
-pac-man = "pac_man:main"
 
-[build-system]
-requires = ["uv_build>=0.9.11,<0.10.0"]
-build-backend = "uv_build"
+
