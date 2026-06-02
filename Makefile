@@ -16,11 +16,12 @@ install:
 	uv tool install pygbag
 
 # use this to create the WebAssembly for itch.io
-build:
-	pygbag --disable-sound-format-error src/pac_man/
+build: clean
+# 	pygbag --build --html src
+	pygbag src/main.py
 
 run:
-	uv run pac-man
+	uv run -v src/main.py
 
 debug:
 	uv run python3 -m pdb pac-man.py $(ARGS)
@@ -29,6 +30,7 @@ clean:
 	find . -type d -name __pycache__ -exec rm -rf {} +
 	find . -type d -name .mypy_cache -exec rm -rf {} +
 	find . -type d -name .venv -exec rm -rf {} +
+	find . -type d -name .pygbag -exec rm -rf {} +
 	find . -type d -name build -exec rm -rf {} +
 	find . -type d -name dist -exec rm -rf {} +
 	find . -name .pytest_cache -exec rm -rf {} +
@@ -62,5 +64,5 @@ lint-strict:
 re: clean install
 
 # push the build to itch.io
-push:build
-	BUTLER_API_KEY=$(BUTLER_API_KEY) butler/butler push ./build/web 42-HN-DreamTeam/pac-man:web
+push:
+	BUTLER_API_KEY=$(BUTLER_API_KEY) butler/butler push ./src/build/web 42-HN-DreamTeam/pac-man:web
