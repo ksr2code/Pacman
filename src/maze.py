@@ -20,8 +20,6 @@ class Maze:
         conf: Config,
         seed: int | None = None,
     ) -> None:
-        # Use importlib to hide from pygbag static analysis
-        
         self.seed = seed if seed is not None else conf.seed
         self.screen = screen
         self.TILE_SIZE = 32

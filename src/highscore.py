@@ -7,9 +7,11 @@ class Highscore:
         self.filename = filename
         self.entries: list[dict[str, str | int]] = []
 
-    def load(self) -> None:
+    def load(self, file=None) -> None:
         """Load highscores from file. Clears entries on error."""
         try:
+            if file is not None:
+                self.filename = file
             with open(self.filename) as fp:
                 data = json.load(fp)
             if not isinstance(data, list):

@@ -15,13 +15,18 @@ install:
 	uv sync --python 3.12 --all-extras
 	uv tool install pygbag
 
-# use this to create the WebAssembly for itch.io
-build: clean
-# 	pygbag --build --html src
-	pygbag src/main.py
+build:
+	unzip packages/mazegenerator-00001-py3-none-any.whl -x mazegenerator-2.0.1.dist-info/{METADATA,WHEEL,top_level.txt,RECORD} -d src
+	pygbag --build src/main.py
+	rm -rf src/mazegenerator
+	@read -p "Launch HTTP server on port 8000? [y/N] " -n 1 -r; \
+	echo; \
+	if [[ $$REPLY =~ ^[Yy]$$ ]]; then \
+		python3 -m http.server -b 127.0.0.1 8000 -d src/build/web; \
+	fi
 
 run:
-	uv run -v src/main.py
+	uv run -v pac-man.py $(ARGS)
 
 debug:
 	uv run python3 -m pdb pac-man.py $(ARGS)
