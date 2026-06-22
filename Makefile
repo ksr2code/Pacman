@@ -30,7 +30,6 @@ run:
 
 debug:
 	uv run python3 -m pdb pac-man.py $(ARGS)
-	uv run python3 -m pdb pac-man.py $(ARGS)
 
 clean:
 	find . -type d -name __pycache__ -exec rm -rf {} +
@@ -52,8 +51,6 @@ test:
 lint:
 	uv run flake8 $(PY_FILES)
 	uv run mypy $(PY_FILES) \
-	uv run flake8 $(PY_FILES)
-	uv run mypy $(PY_FILES) \
 		--explicit-package-bases \
 		--warn-return-any \
 		--warn-unused-ignores \
@@ -63,8 +60,6 @@ lint:
 		--exclude '(^\.venv/)'
 
 lint-strict:
-	uv run flake8 $(PY_FILES)
-	uv run mypy $(PY_FILES)\
 	uv run flake8 $(PY_FILES)
 	uv run mypy $(PY_FILES)\
 		--explicit-package-bases \

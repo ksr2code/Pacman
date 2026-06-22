@@ -276,8 +276,8 @@ async def pacman(cfg_file_path: str) -> None:
 async def main():
     from os import path
 
-    default_config = path.join(path.dirname(path.abspath(__file__)), "config.json")
-    await pacman(default_config)
+    def_config = path.join(path.dirname(path.abspath(__file__)), "config.json")
+    await pacman(def_config)
 
 
 if __name__ == "__main__":
