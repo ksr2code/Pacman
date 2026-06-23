@@ -24,7 +24,9 @@ class Maze:
         self.screen = screen
         self.TILE_SIZE = 32
         try:
-            self.maze = MazeGenerator(size=(conf.width, conf.height))
+            self.maze = MazeGenerator(
+                size=(conf.width, conf.height), perfect=False
+            )
             self.maze.generate(self.seed)  # Generate once at init
             self.out = self._build_maze()
             self.maze_surface = self._render_maze_to_surface()
