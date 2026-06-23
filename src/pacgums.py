@@ -18,7 +18,10 @@ class Pacgums:
         maze: Maze,
         exclude: set[tuple[int, int]],
         spritesheet: SpriteSheet | None = None,
+        count: int = 0,
+        seed: int = 0,
     ) -> None:
+        """Place up to `count` pacgums on random corridors, plus 4 supers. """
         self.pacgums: dict[tuple[int, int], str] = {}
         self._blink_timer: float = 0.0
         self._blink_visible: bool = True
@@ -29,15 +32,35 @@ class Pacgums:
         self._eat_idx: int = 0
         self._fruit_sprites: dict[tuple[int, int], Any] = {}
         self._ss = spritesheet
-        rows = len(maze.out)
-        cols = len(maze.out[0])
-        for r in range(1, rows, 2):
-            for c in range(1, cols, 2):
-                if (r, c) in exclude:
-                    continue
-                if maze.out[r][c] is None and self._has_exit(maze, r, c):
-                    self.pacgums[(r, c)] = "pacgum"
-        self._place_super(maze)
+
+        super_cells = self._resolve_supers(maze)
+        super_set = set(super_cells)
+
+        candidates = [
+            (r, c)
+            for r in range(1, len(maze.out), 2)
+            for c in range(1, len(maze.out[0]), 2)
+            if (r, c) not in exclude
+            and (r, c) not in super_set
+            and maze.out[r][c] is None
+            and self._has_exit(maze, r, c)
+        ]
+
+        rng = random.Random(seed)
+        count = max(0, min(count, len(candidates)))
+        if count < len(candidates):
+            chosen = set(rng.sample(candidates, count))
+        else:
+            chosen = set(candidates)
+
+        for pos in chosen:
+            self.pacgums[pos] = "pacgum"
+        for pos in super_cells:
+            self.pacgums[pos] = "super"
+            if self._ss is not None:
+                col = rng.choice(FRUIT_COLS)
+                row = rng.choice(FRUIT_ROWS)
+                self._fruit_sprites[pos] = self._ss.getImageGrid(col, row)
 
     def _has_exit(self, maze: Maze, r: int, c: int) -> bool:
         return any(
@@ -45,21 +68,20 @@ class Pacgums:
             for dr, dc in ((-1, 0), (1, 0), (0, -1), (0, 1))
         )
 
-    def _place_super(self, maze: Maze) -> None:
+    def _resolve_supers(self, maze: Maze) -> list[tuple[int, int]]:
+        """BFS from each of the 4 maze corners to the nearest valid cell. """
         corners = [
             (1, 1),
             (1, len(maze.out[0]) - 2),
             (len(maze.out) - 2, 1),
             (len(maze.out) - 2, len(maze.out[0]) - 2),
         ]
+        cells: list[tuple[int, int]] = []
         for cr, cc in corners:
             pos = self._bfs_walkable(maze, cr | 1, cc | 1)
-            if pos and pos in self.pacgums:
-                self.pacgums[pos] = "super"
-                if self._ss is not None:
-                    col = random.choice(FRUIT_COLS)
-                    row = random.choice(FRUIT_ROWS)
-                    self._fruit_sprites[pos] = self._ss.getImageGrid(col, row)
+            if pos is not None:
+                cells.append(pos)
+        return cells
 
     def _bfs_walkable(
         self, maze: Maze, sr: int, sc: int
