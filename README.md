@@ -131,4 +131,6 @@ src/pac_man/
 
 ## Project Management
 
-Project management documents are available in the `docs/` directory (planned).
+Project management documents are in the [`docs/`](docs/README.md) directory:
+methodology, team organization, timeline (with Gantt chart), risk register,
+technical decisions, and an acceptance test plan.
