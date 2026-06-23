@@ -63,6 +63,7 @@ class Pacgums:
                 self._fruit_sprites[pos] = self._ss.getImageGrid(col, row)
 
     def _has_exit(self, maze: Maze, r: int, c: int) -> bool:
+        """True if any neighbor of (r, c) is walkable."""
         return any(
             maze.is_walkable(r + dr, c + dc)
             for dr, dc in ((-1, 0), (1, 0), (0, -1), (0, 1))
@@ -86,6 +87,7 @@ class Pacgums:
     def _bfs_walkable(
         self, maze: Maze, sr: int, sc: int
     ) -> tuple[int, int] | None:
+        """BFS from (sr, sc) to nearest valid cell."""
         rows = len(maze.out)
         cols = len(maze.out[0])
         visited: set[tuple[int, int]] = set()
@@ -106,17 +108,21 @@ class Pacgums:
         return None
 
     def eat(self, row: int, col: int) -> str | None:
+        """Remove and return the pacgum kind at (row, col)."""
         return self.pacgums.pop((row, col), None)
 
     def eat_sound(self) -> None:
+        """Play alternating eat-dot sounds."""
         self._eat_sounds[self._eat_idx].play()
         self._eat_idx = 1 - self._eat_idx
 
     @property
     def remaining(self) -> int:
+        """Number of pacgums/supers left on the board."""
         return len(self.pacgums)
 
     def update(self, dt: float) -> None:
+        """Advance the super-pacgum blink timer."""
         self._blink_timer += dt
         if self._blink_timer >= 0.2:
             self._blink_timer = 0.0
@@ -124,6 +130,7 @@ class Pacgums:
 
     def draw(self, screen: Any, offset_y: int = 0) -> None:
 
+        """Render pacgums as dots, supers as blinking sprites."""
         half = const.TILE_SIZE // 2
         for (r, c), kind in self.pacgums.items():
             cx = c * const.TILE_SIZE + half

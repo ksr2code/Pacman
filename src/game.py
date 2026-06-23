@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from typing import Any
 from dataclasses import dataclass
 import pygame
 
@@ -27,6 +26,7 @@ STATE_DYING = "dying"
 
 @dataclass
 class Cheats:
+    """Toggleable cheat flags for peer review."""
     invincible: bool = False
     ghost_freeze: bool = False
     speed_boost: bool = False
@@ -34,9 +34,12 @@ class Cheats:
 
 
 class Game:
+    """Owns game state: score, lives, level, entities, collision, HUD."""
+
     _ghost_ss: SpriteSheet | None = None
 
-    def __init__(self, cfg: Config, screen: Any) -> None:
+    def __init__(self, cfg: Config, screen: pygame.Surface) -> None:
+        """Initialize game state and build the first level."""
         self.cfg = cfg
         self.screen = screen
         self.score: int = 0
@@ -72,6 +75,7 @@ class Game:
         self._init_level(cfg.seed)
 
     def _init_level(self, seed: int) -> None:
+        """Build maze, spawn entities, scale difficulty for current level."""
         self.maze = Maze(self.screen, self.cfg, seed=seed)
         if not hasattr(self, "player") or self.player is None:
             self.player = Player(self.maze)
@@ -145,12 +149,13 @@ class Game:
                 g.start_freight()
 
     def _get_ghost_spritesheet(self) -> SpriteSheet:
+        """Lazily load and cache the ghost spritesheet."""
         if Game._ghost_ss is None:
             Game._ghost_ss = SpriteSheet("spritesheet_nopink.png")
         return Game._ghost_ss
 
-    def handle_event(self, event: Any) -> None:
-
+    def handle_event(self, event: pygame.event.Event) -> None:
+        """Route keyboard input to pause, cheats, or player movement."""
         if event.type != pygame.KEYDOWN:
             return
         if event.key == pygame.K_SPACE:
@@ -178,6 +183,7 @@ class Game:
             self.player.set_direction(direction)
 
     def update(self, dt: float) -> None:
+        """Advance game state: death animation, timers, movement, collision."""
         if self.state == const.STATE_GAME_OVER:
             return
         if self.state == STATE_DYING:
@@ -232,6 +238,7 @@ class Game:
         self._update_eyes_sound()
 
     def _check_eating(self) -> None:
+        """Score pacgum/super; trigger victory or level complete."""
         kind = self.pacgums.eat(self.player.grid_row, self.player.grid_col)
         if kind == "pacgum":
             self.score += self.cfg.points_per_pacgum
@@ -248,6 +255,7 @@ class Game:
                 self._pause_timer = const.LEVEL_COMPLETE_PAUSE
 
     def _start_freight(self) -> None:
+        """Make all ghosts edible and play fright sound."""
         if self.cheats.always_fright:
             return
         self._stop_fright_sound()
@@ -259,17 +267,20 @@ class Game:
             g.start_freight()
 
     def _end_freight(self) -> None:
+        """Restore ghosts to scatter/chase and stop fright sound."""
         self._stop_fright_sound()
         for g in self.ghosts:
             if g.mode not in ("scatter", "chase"):
                 g.go_normal(self._current_mode)
 
     def _stop_fright_sound(self) -> None:
+        """Stop and clear the looping fright sound."""
         if self._fright_sound:
             self._fright_sound.stop()
             self._fright_sound = None
 
     def _update_eyes_sound(self) -> None:
+        """Stop eyes sound when no ghost is returning home."""
         if self._eyes_sound and not any(
             g.mode == "spawn" for g in self.ghosts
         ):
@@ -277,6 +288,7 @@ class Game:
             self._eyes_sound = None
 
     def _update_mode(self, dt: float) -> None:
+        """Toggle between scatter and chase modes on timer."""
         self._mode_timer += dt
         if (
             self._current_mode == "scatter"
@@ -292,6 +304,7 @@ class Game:
             self._mode_timer = 0.0
 
     def _update_ghost_goals(self) -> None:
+        """Set each ghost's goal based on current mode."""
         pr = self.player.grid_row
         pc = self.player.grid_col
         for g in self.ghosts:
@@ -303,6 +316,7 @@ class Game:
                 g.set_goal(pr, pc)
 
     def _check_ghost_collision(self) -> None:
+        """Handle player-ghost overlap: eat freighted ghost or lose a life."""
         if self._invincible_timer > 0 and not self.cheats.invincible:
             return
         for g in self.ghosts:
@@ -330,6 +344,7 @@ class Game:
                 return
 
     def _reset_positions(self) -> None:
+        """Reset player and ghosts to spawns after death."""
         self.player.reset(*self._player_spawn)
         for i, g in enumerate(self.ghosts):
             g.reset(*self._ghost_spawns[i])
@@ -338,6 +353,7 @@ class Game:
         self._freight_timer = 0.0
 
     def _advance_level(self) -> None:
+        """Move to the next level or trigger victory."""
         if self.level_number >= const.NUM_LEVELS:
             self.state = const.STATE_VICTORY
             return
@@ -347,6 +363,7 @@ class Game:
         self.state = const.STATE_PLAYING
 
     def _restart_game(self) -> None:
+        """Reset score, lives, level, and rebuild level 1."""
         self.score = 0
         self.lives = self.cfg.lives
         self.level_number = 1
@@ -357,15 +374,19 @@ class Game:
         self._init_level(self.cfg.seed)
 
     def toggle_invincible(self) -> None:
+        """Toggle invincibility cheat."""
         self.cheats.invincible = not self.cheats.invincible
 
     def toggle_ghost_freeze(self) -> None:
+        """Toggle ghost-freeze cheat."""
         self.cheats.ghost_freeze = not self.cheats.ghost_freeze
 
     def toggle_speed_boost(self) -> None:
+        """Toggle player speed-boost cheat."""
         self.cheats.speed_boost = not self.cheats.speed_boost
 
     def toggle_always_fright(self) -> None:
+        """Toggle permanent fright mode cheat."""
         self.cheats.always_fright = not self.cheats.always_fright
         if self.cheats.always_fright:
             for g in self.ghosts:
@@ -375,6 +396,7 @@ class Game:
             self._end_freight()
 
     def skip_level(self) -> None:
+        """Cheat: immediately complete the current level."""
         if self.level_number >= const.NUM_LEVELS:
             self.state = const.STATE_VICTORY
         else:
@@ -382,9 +404,11 @@ class Game:
             self._pause_timer = const.LEVEL_COMPLETE_PAUSE
 
     def extra_life(self) -> None:
+        """Cheat: grant one additional life."""
         self.lives += 1
 
     def _find_ghost_spawns(self) -> list[tuple[int, int]]:
+        """Find nearest walkable cell to each maze corner."""
         rows = len(self.maze.out)
         cols = len(self.maze.out[0])
         corners = [
@@ -396,6 +420,7 @@ class Game:
         return [self.maze.nearest_cell(r, c) for r, c in corners]
 
     def draw(self) -> None:
+        """Render maze, pacgums, player, ghosts, and HUD."""
         self.maze.draw(self.hud_offset)
         self.pacgums.draw(self.screen, self.hud_offset)
         if self.state == STATE_DYING:
@@ -412,6 +437,7 @@ class Game:
         self._draw_hud()
 
     def _draw_hud(self) -> None:
+        """Render score, level, timer, life icons, cheat label."""
         screen_w = self.screen.get_width()
 
         score_surf = self._small_font.render(f"{self.score}")

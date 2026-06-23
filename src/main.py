@@ -10,7 +10,6 @@ dependencies = [
 
 import time
 import asyncio
-from typing import Any
 import pygame
 
 import constants as const
@@ -37,7 +36,10 @@ STATE_DYING = "dying"
 
 
 class App:
-    def __init__(self, cfg: Config, screen: Any) -> None:
+    """Top-level app: owns config, screen, highscore, and game state."""
+
+    def __init__(self, cfg: Config, screen: pygame.Surface) -> None:
+        """Load highscore and transition to the title screen."""
         self.cfg = cfg
         self.screen = screen
 
@@ -58,6 +60,7 @@ class App:
         self._transition(const.STATE_TITLE)
 
     def _transition(self, new_state: str) -> None:
+        """Instantiate the Screen for the new state."""
         if new_state == const.STATE_TITLE:
             self._screen = TitleScreen(
                 self.screen,
@@ -136,6 +139,7 @@ class App:
         self._state = new_state
 
     def handle_event(self, event: pygame.event.Event) -> None:
+        """Route QUIT or delegate to the game/screen."""
         if event.type == pygame.QUIT:
             pygame.quit()
             raise SystemExit
@@ -164,6 +168,7 @@ class App:
                 self._transition(result)
 
     def update(self, dt: float) -> None:
+        """Delegate update to game or current screen."""
         if self._state == const.STATE_PLAYING:
             self.game.update(dt)
             self._check_game_state()
@@ -181,6 +186,7 @@ class App:
                 self._transition(result)
 
     def _check_game_state(self) -> None:
+        """Mirror game substates to App state."""
         s = self.game.state
 
         if s == const.STATE_PAUSE:
@@ -208,20 +214,25 @@ class App:
                 self._transition(const.STATE_PLAYING)
 
     def draw(self) -> None:
+        """Delegate draw to the current screen."""
         self._screen.draw()
 
 
 class _GameScreen(Screen):
     def __init__(self, game: Game) -> None:
+        """Load highscore and transition to the title screen."""
         self.game = game
 
     def handle_event(self, event: pygame.event.Event) -> str | None:
+        """Route QUIT or delegate to the game/screen."""
         return None
 
     def update(self, dt: float) -> str | None:
+        """Delegate update to game or current screen."""
         return None
 
     def draw(self) -> None:
+        """Delegate draw to the current screen."""
         self.game.draw()
 
 
@@ -231,6 +242,7 @@ class _GameScreen(Screen):
 
 
 async def pacman(cfg_file_path: str) -> None:
+    """Load config, init pygame, and run the async game loop."""
     cfg = Config()
 
     if not cfg.read(cfg_file_path):
@@ -273,7 +285,8 @@ async def pacman(cfg_file_path: str) -> None:
 # ---------------------------
 
 
-async def main():
+async def main() -> None:
+    """pygbag entry point: load default config and run the game."""
     from os import path
 
     def_config = path.join(path.dirname(path.abspath(__file__)), "config.json")

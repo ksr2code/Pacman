@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from typing import Any
 from abc import ABC, abstractmethod
 import re
 
@@ -16,8 +15,9 @@ STATE_LEVEL_COMPLETE = "level_complete"
 
 
 class Screen(ABC):
+    """Abstract base for all UI screens."""
     @abstractmethod
-    def handle_event(self, event: Any) -> str | None:
+    def handle_event(self, event: pygame.event.Event) -> str | None:
         """Return new state name or None."""
 
     @abstractmethod
@@ -30,13 +30,15 @@ class Screen(ABC):
 
 
 class TitleScreen(Screen):
+    """Main menu: start, highscores, instructions, exit."""
     def __init__(
         self,
-        screen: Any,
+        screen: pygame.Surface,
         font: Text,
         small_font: Text,
         highscore: Highscore,
     ) -> None:
+        """Initialize screen state and shared references."""
         self.screen = screen
         self.font = font
         self.small_font = small_font
@@ -51,8 +53,9 @@ class TitleScreen(Screen):
         self._blink_timer: float = 0.0
         self._blink_visible: bool = True
 
-    def handle_event(self, event: Any) -> str | None:
+    def handle_event(self, event: pygame.event.Event) -> str | None:
 
+        """Process input; return a new state or None."""
         if event.type != pygame.KEYDOWN:
             return None
         if event.key in (pygame.K_UP, pygame.K_w):
@@ -72,6 +75,7 @@ class TitleScreen(Screen):
         return None
 
     def update(self, dt: float) -> str | None:
+        """Advance timers and animations."""
         self._blink_timer += dt
         if self._blink_timer >= 0.5:
             self._blink_timer = 0.0
@@ -79,6 +83,7 @@ class TitleScreen(Screen):
         return None
 
     def draw(self) -> None:
+        """Render the screen to the display surface."""
         w = self.screen.get_width()
         h = self.screen.get_height()
         title = self.font.render("PAC-MAN")
@@ -109,25 +114,29 @@ class TitleScreen(Screen):
 
 
 class WaitingScreen(Screen):
+    """"Press SPACE" overlay before game starts."""
     def __init__(
         self,
-        screen: Any,
+        screen: pygame.Surface,
         font: Text,
         game: Game,
     ) -> None:
+        """Initialize screen state and shared references."""
         self.screen = screen
         self.font = font
         self.game = game
         self._blink_timer: float = 0.0
         self._blink_visible: bool = True
 
-    def handle_event(self, event: Any) -> str | None:
+    def handle_event(self, event: pygame.event.Event) -> str | None:
 
+        """Process input; return a new state or None."""
         if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
             return const.STATE_PLAYING
         return None
 
     def update(self, dt: float) -> str | None:
+        """Advance timers and animations."""
         self._blink_timer += dt
         if self._blink_timer >= 0.5:
             self._blink_timer = 0.0
@@ -135,6 +144,7 @@ class WaitingScreen(Screen):
         return None
 
     def draw(self) -> None:
+        """Render the screen to the display surface."""
         self.game.draw()
         if self._blink_visible:
             w = self.screen.get_width()
@@ -144,20 +154,23 @@ class WaitingScreen(Screen):
 
 
 class PauseScreen(Screen):
+    """Pause overlay: resume, return to menu, open cheats."""
     def __init__(
         self,
-        screen: Any,
+        screen: pygame.Surface,
         font: Text,
         game: Game,
         cfg: Config,
     ) -> None:
+        """Initialize screen state and shared references."""
         self.screen = screen
         self.font = font
         self.game = game
         self.cfg = cfg
 
-    def handle_event(self, event: Any) -> str | None:
+    def handle_event(self, event: pygame.event.Event) -> str | None:
 
+        """Process input; return a new state or None."""
         if event.type != pygame.KEYDOWN:
             return None
         if event.key == pygame.K_SPACE:
@@ -171,10 +184,12 @@ class PauseScreen(Screen):
         return None
 
     def update(self, dt: float) -> str | None:
+        """Advance timers and animations."""
         return None
 
     def draw(self) -> None:
 
+        """Render the screen to the display surface."""
         self.game.draw()
         w = self.screen.get_width()
         h = self.screen.get_height()
@@ -196,13 +211,15 @@ class PauseScreen(Screen):
 
 
 class CheatMenuScreen(Screen):
+    """Cheat toggles: invincibility, freeze, speed, fright, skip, life."""
     def __init__(
         self,
-        screen: Any,
+        screen: pygame.Surface,
         font: Text,
         small_font: Text,
         game: Game,
     ) -> None:
+        """Initialize screen state and shared references."""
         self.screen = screen
         self.font = font
         self.small_font = small_font
@@ -216,8 +233,9 @@ class CheatMenuScreen(Screen):
             ("Always Fright", "always_fright"),
         ]
 
-    def handle_event(self, event: Any) -> str | None:
+    def handle_event(self, event: pygame.event.Event) -> str | None:
 
+        """Process input; return a new state or None."""
         if event.type != pygame.KEYDOWN:
             return None
         if event.key == pygame.K_ESCAPE:
@@ -230,6 +248,7 @@ class CheatMenuScreen(Screen):
         return None
 
     def _apply(self, idx: int) -> None:
+        """Apply the selected cheat toggles to the game."""
         name, toggle = self._options[idx]
         if name == "Level Skip":
             self.game.skip_level()
@@ -245,6 +264,7 @@ class CheatMenuScreen(Screen):
             self.game.toggle_always_fright()
 
     def update(self, dt: float) -> str | None:
+        """Advance timers and animations."""
         if self.game.state in (
             const.STATE_VICTORY,
             STATE_LEVEL_COMPLETE,
@@ -254,6 +274,7 @@ class CheatMenuScreen(Screen):
 
     def draw(self) -> None:
 
+        """Render the screen to the display surface."""
         self.game.draw()
         w = self.screen.get_width()
         h = self.screen.get_height()
@@ -280,26 +301,31 @@ class CheatMenuScreen(Screen):
 
 
 class GameOverScreen(Screen):
+    """Game over screen showing final score."""
     def __init__(
         self,
-        screen: Any,
+        screen: pygame.Surface,
         font: Text,
         game: Game,
     ) -> None:
+        """Initialize screen state and shared references."""
         self.screen = screen
         self.font = font
         self.game = game
 
-    def handle_event(self, event: Any) -> str | None:
+    def handle_event(self, event: pygame.event.Event) -> str | None:
 
+        """Process input; return a new state or None."""
         if event.type == pygame.KEYDOWN and event.key == pygame.K_RETURN:
             return const.STATE_NAME_ENTRY
         return None
 
     def update(self, dt: float) -> str | None:
+        """Advance timers and animations."""
         return None
 
     def draw(self) -> None:
+        """Render the screen to the display surface."""
         self.game.draw()
         w = self.screen.get_width()
         h = self.screen.get_height()
@@ -318,26 +344,31 @@ class GameOverScreen(Screen):
 
 
 class VictoryScreen(Screen):
+    """Victory screen with congratulatory message."""
     def __init__(
         self,
-        screen: Any,
+        screen: pygame.Surface,
         font: Text,
         game: Game,
     ) -> None:
+        """Initialize screen state and shared references."""
         self.screen = screen
         self.font = font
         self.game = game
 
-    def handle_event(self, event: Any) -> str | None:
+    def handle_event(self, event: pygame.event.Event) -> str | None:
 
+        """Process input; return a new state or None."""
         if event.type == pygame.KEYDOWN and event.key == pygame.K_RETURN:
             return const.STATE_NAME_ENTRY
         return None
 
     def update(self, dt: float) -> str | None:
+        """Advance timers and animations."""
         return None
 
     def draw(self) -> None:
+        """Render the screen to the display surface."""
         self.game.draw()
         w = self.screen.get_width()
         h = self.screen.get_height()
@@ -356,14 +387,16 @@ class VictoryScreen(Screen):
 
 
 class NameEntryScreen(Screen):
+    """Text input for player name; saves highscore on ENTER."""
     def __init__(
         self,
-        screen: Any,
+        screen: pygame.Surface,
         font: Text,
         small_font: Text,
         highscore: Highscore,
         score: int,
     ) -> None:
+        """Initialize screen state and shared references."""
         self.screen = screen
         self.font = font
         self.small_font = small_font
@@ -373,8 +406,9 @@ class NameEntryScreen(Screen):
         self._cursor_timer: float = 0.0
         self._cursor_visible: bool = True
 
-    def handle_event(self, event: Any) -> str | None:
+    def handle_event(self, event: pygame.event.Event) -> str | None:
 
+        """Process input; return a new state or None."""
         if event.type != pygame.KEYDOWN:
             return None
         if event.key == pygame.K_RETURN:
@@ -394,6 +428,7 @@ class NameEntryScreen(Screen):
         return None
 
     def update(self, dt: float) -> str | None:
+        """Advance timers and animations."""
         self._cursor_timer += dt
         if self._cursor_timer >= 0.5:
             self._cursor_timer = 0.0
@@ -401,6 +436,7 @@ class NameEntryScreen(Screen):
         return None
 
     def draw(self) -> None:
+        """Render the screen to the display surface."""
         w = self.screen.get_width()
         h = self.screen.get_height()
         prompt = self.font.render("ENTER YOUR NAME")
@@ -435,18 +471,21 @@ class NameEntryScreen(Screen):
 
 
 class HighscoresScreen(Screen):
+    """Displays the top 10 highscores."""
     def __init__(
         self,
-        screen: Any,
+        screen: pygame.Surface,
         font: Text,
         highscore: Highscore,
     ) -> None:
+        """Initialize screen state and shared references."""
         self.screen = screen
         self.font = font
         self.highscore = highscore
 
-    def handle_event(self, event: Any) -> str | None:
+    def handle_event(self, event: pygame.event.Event) -> str | None:
 
+        """Process input; return a new state or None."""
         if event.type == pygame.KEYDOWN and event.key in (
             pygame.K_ESCAPE,
             pygame.K_RETURN,
@@ -455,9 +494,11 @@ class HighscoresScreen(Screen):
         return None
 
     def update(self, dt: float) -> str | None:
+        """Advance timers and animations."""
         return None
 
     def draw(self) -> None:
+        """Render the screen to the display surface."""
         w = self.screen.get_width()
         h = self.screen.get_height()
         title = self.font.render("HIGHSCORES")
@@ -481,11 +522,13 @@ class HighscoresScreen(Screen):
 
 
 class InstructionsScreen(Screen):
+    """Shows controls and game rules."""
     def __init__(
         self,
-        screen: Any,
+        screen: pygame.Surface,
         font: Text,
     ) -> None:
+        """Initialize screen state and shared references."""
         self.screen = screen
         self.font = font
         self._lines = [
@@ -506,8 +549,9 @@ class InstructionsScreen(Screen):
             "  TO WIN THE GAME",
         ]
 
-    def handle_event(self, event: Any) -> str | None:
+    def handle_event(self, event: pygame.event.Event) -> str | None:
 
+        """Process input; return a new state or None."""
         if event.type == pygame.KEYDOWN and event.key in (
             pygame.K_ESCAPE,
             pygame.K_RETURN,
@@ -516,9 +560,11 @@ class InstructionsScreen(Screen):
         return None
 
     def update(self, dt: float) -> str | None:
+        """Advance timers and animations."""
         return None
 
     def draw(self) -> None:
+        """Render the screen to the display surface."""
         w = self.screen.get_width()
         for i, line in enumerate(self._lines):
             surf = self.font.render(line)

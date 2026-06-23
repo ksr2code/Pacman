@@ -7,6 +7,7 @@ ifneq (,$(wildcard ./.env))
 endif
 
 PY_FILES := pac-man.py $(shell find src -name '*.py' -type f)
+MYPY_FILES := $(filter-out pac-man.py,$(PY_FILES))
 
 GREEN := \033[0;32mOK\033[0m
 RED := \033[0;31mKO\033[0m
@@ -50,7 +51,7 @@ test:
 
 lint:
 	uv run flake8 $(PY_FILES)
-	uv run mypy $(PY_FILES) \
+	MYPYPATH=src uv run mypy $(MYPY_FILES) \
 		--explicit-package-bases \
 		--warn-return-any \
 		--warn-unused-ignores \
@@ -61,7 +62,7 @@ lint:
 
 lint-strict:
 	uv run flake8 $(PY_FILES)
-	uv run mypy $(PY_FILES)\
+	MYPYPATH=src uv run mypy $(MYPY_FILES)\
 		--explicit-package-bases \
 		--strict \
 		--exclude '(^\.venv/)'

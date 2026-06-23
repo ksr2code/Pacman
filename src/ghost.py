@@ -1,7 +1,6 @@
 import math
 import random
 from collections import deque
-from typing import Any
 
 import pygame
 
@@ -19,6 +18,8 @@ REVERSE = {
 
 
 class Ghost:
+    """Ghost AI with scatter, chase, freight, and spawn modes."""
+
     def __init__(
         self,
         maze: Maze,
@@ -29,6 +30,7 @@ class Ghost:
         col_index: int = 0,
         spritesheet: SpriteSheet | None = None,
     ) -> None:
+        """Place ghost at (row, col) with color and scatter goal."""
         self.maze = maze
         self.color = color
         self.scatter_goal = scatter_goal
@@ -49,33 +51,40 @@ class Ghost:
         self._last_dir: tuple[int, int] = (0, 1)
 
     def set_base_speed(self, speed: float) -> None:
+        """Set the ghost's base movement speed (pixels/sec)."""
         self._base_speed = speed
 
     def set_goal(self, row: int, col: int) -> None:
+        """Set the target cell for chase/scatter pathfinding."""
         self.goal = (row, col)
 
     def start_freight(self) -> None:
+        """Enter freight (edible) mode: slow down, allow random movement."""
         self.mode = "freight"
         self.speed = self._base_speed * const.FREIGHT_SPEED_MULT
         self.direction = None
 
     def start_spawn(self) -> None:
+        """Enter spawn mode: rush back home at high speed after being eaten."""
         self.mode = "spawn"
         self.speed = self._base_speed * const.SPAWN_SPEED_MULT
         self.goal = self._home
         self.direction = None
 
     def go_idle(self) -> None:
+        """Enter idle mode: stop moving."""
         self.mode = "idle"
         self.speed = 0.0
 
     def go_normal(self, main_mode: str) -> None:
+        """Resume scatter or chase mode at base speed."""
         self.mode = main_mode
         self.speed = self._base_speed
 
     def _get_walkable_directions(
         self, exclude_reverse: bool = True
     ) -> list[tuple[int, int]]:
+        """List walkable neighbors, excluding reverse."""
         reverse = (
             REVERSE.get(self.direction)
             if exclude_reverse and self.direction
@@ -92,6 +101,7 @@ class Ghost:
     def _choose_random_direction(
         self,
     ) -> tuple[int, int] | None:
+        """Pick a random walkable direction."""
         options = self._get_walkable_directions()
         if not options:
             options = self._get_walkable_directions(exclude_reverse=False)
@@ -100,6 +110,7 @@ class Ghost:
         return random.choice(options)
 
     def _bfs_distance(self, sr: int, sc: int) -> float | int:
+        """BFS grid distance from (sr, sc) to the goal."""
         if (sr, sc) == self.goal:
             return 0
         rows = len(self.maze.out)
@@ -123,6 +134,7 @@ class Ghost:
         return float("inf")
 
     def _choose_direction(self) -> tuple[int, int] | None:
+        """Pick the next direction per mode and goal."""
         if self.mode == "idle":
             return None
         if self.mode == "freight":
@@ -149,6 +161,7 @@ class Ghost:
         return best
 
     def update(self, dt: float) -> None:
+        """Move toward the next grid cell, re-deciding direction on arrival."""
         if self.mode == "idle":
             return
 
@@ -185,6 +198,7 @@ class Ghost:
             self.py += (dy / dist) * move
 
     def reset(self, row: int, col: int) -> None:
+        """Reset position and mode to the given home cell."""
         self._home = (row, col)
         self.grid_row = row
         self.grid_col = col
@@ -196,10 +210,11 @@ class Ghost:
 
     def draw(
         self,
-        screen: Any,
+        screen: pygame.Surface,
         offset_y: int = 0,
         freight_timer: float = 0.0,
     ) -> None:
+        """Render the ghost using sprites or fallback colored circles."""
 
         if self._ss is None:
             half = const.TILE_SIZE // 2

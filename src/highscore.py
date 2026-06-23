@@ -4,10 +4,11 @@ import re
 
 class Highscore:
     def __init__(self, filename: str = "highscore.json") -> None:
+        """Initialize with empty entries and a filename."""
         self.filename = filename
         self.entries: list[dict[str, str | int]] = []
 
-    def load(self, file=None) -> None:
+    def load(self, file: str | None = None) -> None:
         """Load highscores from file. Clears entries on error."""
         try:
             if file is not None:
@@ -16,13 +17,14 @@ class Highscore:
                 data = json.load(fp)
             if not isinstance(data, list):
                 print(
-                    f"Warning: invalid highscore format "
-                    f"in '{self.filename}'"
+                    f"Warning: invalid highscore format"
+                    f" in '{self.filename}'"
                 )
                 self.entries = []
                 return
             self.entries = [
-                e for e in data
+                e
+                for e in data
                 if isinstance(e, dict)
                 and isinstance(e.get("name"), str)
                 and isinstance(e.get("score"), int)

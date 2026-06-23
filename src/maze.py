@@ -20,6 +20,7 @@ class Maze:
         conf: Config,
         seed: int | None = None,
     ) -> None:
+        """Generate the maze, build render grid, pre-render."""
         self.seed = seed if seed is not None else conf.seed
         self.screen = screen
         self.TILE_SIZE = 32
@@ -35,6 +36,7 @@ class Maze:
             raise
 
     def _build_maze(self) -> list[list[Any | None]]:
+        """Convert bitmask grid to sprite-based render grid."""
         sprite = SpriteSheet("maze.png")
 
         N = 0b0001
@@ -96,7 +98,7 @@ class Maze:
 
         return out
 
-    def _render_maze_to_surface(self):
+    def _render_maze_to_surface(self) -> pygame.Surface:
         """Pre-render entire maze to a single surface for faster blitting."""
         m_h = len(self.maze.maze)
         m_w = len(self.maze.maze[0])

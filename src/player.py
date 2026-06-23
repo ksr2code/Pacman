@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from typing import Any
+
+import pygame
 
 import constants as const
 from maze import Maze
@@ -15,8 +16,11 @@ DIRECTIONS = {
 
 
 class Player:
+    """Grid-based player movement with direction queuing and animation."""
+
     def __init__(self, maze: Maze) -> None:
 
+        """Place player at maze center, load animation frames."""
         self.maze = maze
         self.speed: float = const.PACMAN_SPEED * const.TILE_SIZE
 
@@ -31,7 +35,7 @@ class Player:
 
         ss = SpriteSheet("spritesheet_nopink.png")
         closed = ss.getImageGrid(4, 0)
-        self.frames: dict[str, list[Any]] = {
+        self.frames: dict[str, list[pygame.Surface]] = {
             "left": [
                 closed,
                 ss.getImageGrid(0, 0),
@@ -55,16 +59,18 @@ class Player:
         }
         self.last_dir: str = "right"
         self.anim_time: float = 0.0
-        self.death_frames: list[Any] = [
+        self.death_frames: list[pygame.Surface] = [
             ss.getImageGrid(col, 6) for col in range(11)
         ]
 
     def set_direction(self, name: str) -> None:
+        """Queue the next direction; applied at the next walkable cell."""
         d = DIRECTIONS.get(name)
         if d:
             self.next_direction = d
 
     def _try_queued_direction(self) -> None:
+        """Apply queued direction if next cell walkable."""
         if self.next_direction and self.maze.is_walkable(
             self.grid_row + self.next_direction[0],
             self.grid_col + self.next_direction[1],
@@ -73,6 +79,7 @@ class Player:
             self.next_direction = None
 
     def update(self, dt: float) -> None:
+        """Move toward the target cell; stop on walls, apply queued turns."""
         if not self.direction:
             self._try_queued_direction()
             if not self.direction:
@@ -106,6 +113,7 @@ class Player:
         self.anim_time += dt
 
     def reset(self, row: int, col: int) -> None:
+        """Reset position and clear direction state."""
         self.grid_row = row
         self.grid_col = col
         self.px = col * const.TILE_SIZE
@@ -113,7 +121,8 @@ class Player:
         self.direction = None
         self.next_direction = None
 
-    def draw(self, screen: Any, offset_y: int = 0) -> None:
+    def draw(self, screen: pygame.Surface, offset_y: int = 0) -> None:
+        """Render the current animation frame for the facing direction."""
         if self.direction:
             for name, d in DIRECTIONS.items():
                 if d == self.direction:
@@ -124,8 +133,12 @@ class Player:
         screen.blit(frame, (self.px, self.py + offset_y))
 
     def draw_death(
-        self, screen: Any, offset_y: int, progress: float
+        self,
+        screen: pygame.Surface,
+        offset_y: int,
+        progress: float,
     ) -> None:
+        """Render the death animation frame at the given progress (0..1)."""
         idx = min(int(progress * len(self.death_frames)), 10)
         frame = self.death_frames[idx]
         screen.blit(frame, (self.px, self.py + offset_y))

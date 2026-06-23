@@ -93,6 +93,7 @@ def _sanitize(parsed: dict[str, Any]) -> dict[str, Any]:
 
 class Config:
     def __init__(self) -> None:
+        """No state until read() loads a config file."""
         self.data: ConfigData
 
     def read(self, file: str) -> bool:
@@ -123,44 +124,55 @@ class Config:
 
     @property
     def width(self) -> int:
+        """Maze width in cells (min 5)."""
         return self.data.width
 
     @property
     def height(self) -> int:
+        """Maze height in cells (min 5)."""
         return self.data.height
 
     @property
     def seed(self) -> int:
+        """Base seed for level 1 maze generation."""
         return self.data.seed
 
     @property
     def lives(self) -> int:
+        """Starting lives (min 1)."""
         return self.data.lives
 
     @property
     def highscore_filename(self) -> str:
+        """Path to the highscore JSON file."""
         return self.data.highscore_filename
 
     @property
     def pacgum(self) -> int:
+        """Pacgum count per level (min 0; clamped to corridors)."""
         return self.data.pacgum
 
     @property
     def points_per_pacgum(self) -> int:
+        """Points awarded per pacgum eaten."""
         return self.data.points_per_pacgum
 
     @property
     def points_per_super_pacgum(self) -> int:
+        """Points per super-pacgum eaten."""
         return self.data.points_per_super_pacgum
 
     @property
     def points_per_ghost(self) -> int:
+        """Base points per edible ghost eaten."""
         return self.data.points_per_ghost
 
     @property
     def level_max_time(self) -> int:
+        """Seconds per level (min 10)."""
         return self.data.level_max_time
 
     @property
     def cheat(self) -> bool:
+        """Whether the cheat menu is accessible."""
         return self.data.cheat
