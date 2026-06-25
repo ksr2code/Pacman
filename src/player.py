@@ -19,7 +19,6 @@ class Player:
     """Grid-based player movement with direction queuing and animation."""
 
     def __init__(self, maze: Maze) -> None:
-
         """Place player at maze center, load animation frames."""
         self.maze = maze
         self.speed: float = const.PACMAN_SPEED * const.TILE_SIZE
@@ -27,6 +26,8 @@ class Player:
         row, col = maze.center
         self.grid_row = row
         self.grid_col = col
+        self._prev_row: int = row
+        self._prev_col: int = col
         self.px: float = col * const.TILE_SIZE
         self.py: float = row * const.TILE_SIZE
 
@@ -80,6 +81,8 @@ class Player:
 
     def update(self, dt: float) -> None:
         """Move toward the target cell; stop on walls, apply queued turns."""
+        self._prev_row = self.grid_row
+        self._prev_col = self.grid_col
         if not self.direction:
             self._try_queued_direction()
             if not self.direction:
@@ -116,6 +119,8 @@ class Player:
         """Reset position and clear direction state."""
         self.grid_row = row
         self.grid_col = col
+        self._prev_row = row
+        self._prev_col = col
         self.px = col * const.TILE_SIZE
         self.py = row * const.TILE_SIZE
         self.direction = None

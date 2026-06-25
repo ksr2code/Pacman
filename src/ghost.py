@@ -40,6 +40,8 @@ class Ghost:
 
         self.grid_row = row
         self.grid_col = col
+        self._prev_row: int = row
+        self._prev_col: int = col
         self.px: float = col * const.TILE_SIZE
         self.py: float = row * const.TILE_SIZE
 
@@ -53,6 +55,7 @@ class Ghost:
     def set_base_speed(self, speed: float) -> None:
         """Set the ghost's base movement speed (pixels/sec)."""
         self._base_speed = speed
+        self.speed = speed
 
     def set_goal(self, row: int, col: int) -> None:
         """Set the target cell for chase/scatter pathfinding."""
@@ -162,6 +165,8 @@ class Ghost:
 
     def update(self, dt: float) -> None:
         """Move toward the next grid cell, re-deciding direction on arrival."""
+        self._prev_row = self.grid_row
+        self._prev_col = self.grid_col
         if self.mode == "idle":
             return
 
@@ -202,6 +207,8 @@ class Ghost:
         self._home = (row, col)
         self.grid_row = row
         self.grid_col = col
+        self._prev_row = row
+        self._prev_col = col
         self.px = col * const.TILE_SIZE
         self.py = row * const.TILE_SIZE
         self.direction = None

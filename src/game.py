@@ -27,6 +27,7 @@ STATE_DYING = "dying"
 @dataclass
 class Cheats:
     """Toggleable cheat flags for peer review."""
+
     invincible: bool = False
     ghost_freeze: bool = False
     speed_boost: bool = False
@@ -53,7 +54,7 @@ class Game:
         self._death_timer: float = 0.0
         self._fright_sound: Sound | None = None
         self._eyes_sound: Sound | None = None
-        self._ghost_points: int = 200
+        self._ghost_points: int = cfg.points_per_ghost
         self._mode_timer: float = 0.0
         self._current_mode: str = "scatter"
         self._current_freight_time: float = const.FREIGHT_TIME
@@ -76,6 +77,10 @@ class Game:
 
     def _init_level(self, seed: int) -> None:
         """Build maze, spawn entities, scale difficulty for current level."""
+        self._stop_fright_sound()
+        if self._eyes_sound:
+            self._eyes_sound.stop()
+            self._eyes_sound = None
         self.maze = Maze(self.screen, self.cfg, seed=seed)
         if not hasattr(self, "player") or self.player is None:
             self.player = Player(self.maze)
@@ -128,7 +133,8 @@ class Game:
                 g.scatter_goal = corners[GHOST_DEFS[i][2]]
 
         ghost_speed = (
-            const.GHOST_SPEED + self.level_number * const.GHOST_SPEED_PER_LEVEL
+            const.GHOST_SPEED
+            + (self.level_number - 1) * const.GHOST_SPEED_PER_LEVEL
         ) * const.TILE_SIZE
         for g in self.ghosts:
             g.set_base_speed(ghost_speed)
@@ -260,11 +266,12 @@ class Game:
             return
         self._stop_fright_sound()
         self._freight_timer = self._current_freight_time
-        self._ghost_points = 200
+        self._ghost_points = self.cfg.points_per_ghost
         self._fright_sound = Sound("fright.ogg")
         self._fright_sound.play(loops=-1)
         for g in self.ghosts:
-            g.start_freight()
+            if g.mode != "spawn":
+                g.start_freight()
 
     def _end_freight(self) -> None:
         """Restore ghosts to scatter/chase and stop fright sound."""
@@ -320,10 +327,17 @@ class Game:
         if self._invincible_timer > 0 and not self.cheats.invincible:
             return
         for g in self.ghosts:
-            if not (
+            same_cell = (
                 g.grid_row == self.player.grid_row
                 and g.grid_col == self.player.grid_col
-            ):
+            )
+            swapped = (
+                g.grid_row == self.player._prev_row
+                and g.grid_col == self.player._prev_col
+                and self.player.grid_row == g._prev_row
+                and self.player.grid_col == g._prev_col
+            )
+            if not (same_cell or swapped):
                 continue
             if g.mode == "freight":
                 self.score += self._ghost_points
@@ -370,7 +384,7 @@ class Game:
         self.state = const.STATE_PLAYING
         self._invincible_timer = 0.0
         self._freight_timer = 0.0
-        self._ghost_points = 200
+        self._ghost_points = self.cfg.points_per_ghost
         self._init_level(self.cfg.seed)
 
     def toggle_invincible(self) -> None:
