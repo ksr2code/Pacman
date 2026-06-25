@@ -2,6 +2,7 @@
 The original Pacman had 28x36 cells (including the walls)
 """
 
+import sys
 from typing import Any
 from mazegenerator.mazegenerator import MazeGenerator
 import pygame
@@ -32,8 +33,8 @@ class Maze:
             self.out = self._build_maze()
             self.maze_surface = self._render_maze_to_surface()
         except Exception as e:
-            print(f"Error initializing maze: {e}")
-            raise
+            print(f"Error initializing maze: {e}", file=sys.stderr)
+            raise SystemExit(1)
 
     def _build_maze(self) -> list[list[Any | None]]:
         """Convert bitmask grid to sprite-based render grid."""

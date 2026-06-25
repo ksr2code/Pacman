@@ -13,7 +13,7 @@ class Sound:
         self._sound: mixer.Sound | None
         try:
             self._sound = mixer.Sound(self._path)
-        except FileNotFoundError:
+        except Exception:
             print(
                 f"Warning: missing sound file {self._path}",
                 file=sys.stderr,

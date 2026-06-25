@@ -43,6 +43,7 @@ STATE_HIGHSCORES = "highscores"
 STATE_INSTRUCTIONS = "instructions"
 STATE_CHEAT_MENU = "cheat_menu"
 STATE_DYING = "dying"
+STATE_QUIT = "quit"
 
 __all__: Sequence[str] = [
     "TILE_SIZE",
@@ -82,4 +83,5 @@ __all__: Sequence[str] = [
     "STATE_INSTRUCTIONS",
     "STATE_CHEAT_MENU",
     "STATE_DYING",
+    "STATE_QUIT",
 ]

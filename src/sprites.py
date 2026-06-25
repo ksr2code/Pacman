@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import sys
 
 import pygame
 
@@ -21,9 +22,17 @@ class SpriteSheet:
             os.path.dirname(os.path.abspath(__file__)),
             f"assets/sprites/{filename}",
         )
-        self.sheet: pygame.Surface = pygame.image.load(
-            sprite_path,
-        ).convert_alpha()
+        try:
+            self.sheet: pygame.Surface = pygame.image.load(
+                sprite_path,
+            ).convert_alpha()
+        except Exception as e:
+            print(
+                f"Warning: missing sprite {sprite_path}: {e}",
+                file=sys.stderr,
+            )
+            self.sheet = pygame.Surface((32, 32))
+            self.sheet.fill((255, 0, 255))
 
     def getImage(self, x: int, y: int) -> pygame.Surface:
         """Extract a 32x32 subsurface at pixel (x, y)."""

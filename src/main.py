@@ -160,7 +160,11 @@ class App:
         else:
             result = self._screen.handle_event(event)
 
-            if result == const.STATE_WAITING:
+            if result == const.STATE_QUIT:
+                pygame.quit()
+                raise SystemExit
+
+            elif result == const.STATE_WAITING:
                 self.game = Game(self.cfg, self.screen)
                 self._transition(const.STATE_WAITING)
 
