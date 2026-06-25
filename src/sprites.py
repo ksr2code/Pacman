@@ -36,8 +36,9 @@ class SpriteSheet:
 
     def getImage(self, x: int, y: int) -> pygame.Surface:
         """Extract a 32x32 subsurface at pixel (x, y)."""
-        self.sheet.set_clip(pygame.Rect(x, y, 32, 32))
-        return self.sheet.subsurface(self.sheet.get_clip()).copy()
+        return self.sheet.subsurface(
+            pygame.Rect(x, y, 32, 32),
+        ).copy()
 
     def getImageGrid(self, col: int, row: int) -> pygame.Surface:
         """Extract a 32x32 subsurface at grid (col, row)."""

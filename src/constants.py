@@ -43,6 +43,7 @@ STATE_HIGHSCORES = "highscores"
 STATE_INSTRUCTIONS = "instructions"
 STATE_CHEAT_MENU = "cheat_menu"
 STATE_DYING = "dying"
+STATE_LEVEL_COMPLETE = "level_complete"
 STATE_QUIT = "quit"
 
 __all__: Sequence[str] = [
@@ -83,5 +84,6 @@ __all__: Sequence[str] = [
     "STATE_INSTRUCTIONS",
     "STATE_CHEAT_MENU",
     "STATE_DYING",
+    "STATE_LEVEL_COMPLETE",
     "STATE_QUIT",
 ]

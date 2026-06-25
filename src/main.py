@@ -31,9 +31,6 @@ from screens import (
     WaitingScreen,
 )
 
-STATE_LEVEL_COMPLETE = "level_complete"
-STATE_DYING = "dying"
-
 
 class App:
     """Top-level app: owns config, screen, highscore, and game state."""
@@ -44,17 +41,15 @@ class App:
         self.screen = screen
 
         self.font = Text()
-        self.small_font = Text()
-        self.small_font.size = 16
-        self.small_font.font = pygame.font.Font(self.small_font.path, 16)
+        self.small_font = Text(size=16)
 
         self.sound: Sound = Sound("start.ogg")
 
         self.highscore = Highscore(cfg.highscore_filename)
         self.highscore.load()
 
-        self.game: Game = None  # type: ignore
-        self._screen: Screen = None  # type: ignore
+        self.game: Game | None = None
+        self._screen: Screen | None = None
         self._state: str = const.STATE_TITLE
 
         self._transition(const.STATE_TITLE)
@@ -81,10 +76,12 @@ class App:
             )
 
         elif new_state == const.STATE_PLAYING:
+            assert self.game is not None
             self.game.state = const.STATE_PLAYING
             self._screen = _GameScreen(self.game)
 
         elif new_state == const.STATE_PAUSE:
+            assert self.game is not None
             self._screen = PauseScreen(
                 self.screen,
                 self.small_font,
@@ -93,6 +90,7 @@ class App:
             )
 
         elif new_state == const.STATE_CHEAT_MENU:
+            assert self.game is not None
             self._screen = CheatMenuScreen(
                 self.screen,
                 self.font,
@@ -101,6 +99,7 @@ class App:
             )
 
         elif new_state == const.STATE_GAME_OVER:
+            assert self.game is not None
             self._screen = GameOverScreen(
                 self.screen,
                 self.font,
@@ -108,6 +107,7 @@ class App:
             )
 
         elif new_state == const.STATE_VICTORY:
+            assert self.game is not None
             self._screen = VictoryScreen(
                 self.screen,
                 self.font,
@@ -115,6 +115,7 @@ class App:
             )
 
         elif new_state == const.STATE_NAME_ENTRY:
+            assert self.game is not None
             self._screen = NameEntryScreen(
                 self.screen,
                 self.font,
@@ -140,18 +141,21 @@ class App:
 
     def handle_event(self, event: pygame.event.Event) -> None:
         """Route QUIT or delegate to the game/screen."""
+        assert self._screen is not None
         if event.type == pygame.QUIT:
             pygame.quit()
             raise SystemExit
 
         if self._state == const.STATE_PLAYING:
+            assert self.game is not None
             self.game.handle_event(event)
             self._check_game_state()
 
-        elif self._state in (STATE_LEVEL_COMPLETE, STATE_DYING):
+        elif self._state in (const.STATE_LEVEL_COMPLETE, const.STATE_DYING):
             pass
 
         elif self._state == const.STATE_CHEAT_MENU:
+            assert self.game is not None
             result = self._screen.handle_event(event)
             if result is not None:
                 self._transition(result)
@@ -174,23 +178,28 @@ class App:
     def update(self, dt: float) -> None:
         """Delegate update to game or current screen."""
         if self._state == const.STATE_PLAYING:
+            assert self.game is not None
             self.game.update(dt)
             self._check_game_state()
 
-        elif self._state in (STATE_LEVEL_COMPLETE, STATE_DYING):
+        elif self._state in (const.STATE_LEVEL_COMPLETE, const.STATE_DYING):
+            assert self.game is not None
             self.game.update(dt)
             self._check_game_state()
 
         elif self._state == const.STATE_CHEAT_MENU:
+            assert self.game is not None
             self._check_game_state()
 
         else:
+            assert self._screen is not None
             result = self._screen.update(dt)
             if result is not None:
                 self._transition(result)
 
     def _check_game_state(self) -> None:
         """Mirror game substates to App state."""
+        assert self.game is not None
         s = self.game.state
 
         if s == const.STATE_PAUSE:
@@ -205,38 +214,41 @@ class App:
         elif s == const.STATE_VICTORY:
             self._transition(const.STATE_VICTORY)
 
-        elif s == STATE_LEVEL_COMPLETE:
-            if self._state != STATE_LEVEL_COMPLETE:
-                self._state = STATE_LEVEL_COMPLETE
+        elif s == const.STATE_LEVEL_COMPLETE:
+            if self._state != const.STATE_LEVEL_COMPLETE:
+                self._state = const.STATE_LEVEL_COMPLETE
 
-        elif s == STATE_DYING:
-            if self._state != STATE_DYING:
-                self._state = STATE_DYING
+        elif s == const.STATE_DYING:
+            if self._state != const.STATE_DYING:
+                self._state = const.STATE_DYING
 
         elif s == const.STATE_PLAYING:
-            if self._state in (STATE_LEVEL_COMPLETE, STATE_DYING):
+            if self._state in (const.STATE_LEVEL_COMPLETE, const.STATE_DYING):
                 self._transition(const.STATE_PLAYING)
 
     def draw(self) -> None:
         """Delegate draw to the current screen."""
+        assert self._screen is not None
         self._screen.draw()
 
 
 class _GameScreen(Screen):
+    """Thin wrapper to render the Game via the Screen interface."""
+
     def __init__(self, game: Game) -> None:
-        """Load highscore and transition to the title screen."""
+        """Store the game instance for rendering."""
         self.game = game
 
     def handle_event(self, event: pygame.event.Event) -> str | None:
-        """Route QUIT or delegate to the game/screen."""
+        """Process input; return a new state or None."""
         return None
 
     def update(self, dt: float) -> str | None:
-        """Delegate update to game or current screen."""
+        """Advance timers and animations."""
         return None
 
     def draw(self) -> None:
-        """Delegate draw to the current screen."""
+        """Render the screen to the display surface."""
         self.game.draw()
 
 

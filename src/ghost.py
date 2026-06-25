@@ -137,7 +137,10 @@ class Ghost:
         return float("inf")
 
     def _choose_direction(self) -> tuple[int, int] | None:
-        """Pick the next direction per mode and goal."""
+        """Pick the next direction per mode and goal.
+
+        Ties are broken by iteration order: up, down, left, right.
+        """
         if self.mode == "idle":
             return None
         if self.mode == "freight":
@@ -193,7 +196,8 @@ class Ghost:
             self.grid_col += dc
             if (
                 self.mode == "spawn"
-                and (self.grid_row, self.grid_col) == self._home
+                and (self.grid_row, self.grid_col)
+                == self._home
             ):
                 self.direction = None
             else:

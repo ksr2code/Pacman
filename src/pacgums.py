@@ -1,4 +1,5 @@
 import random
+from collections import deque
 from typing import Any
 
 import pygame
@@ -21,7 +22,7 @@ class Pacgums:
         count: int = 0,
         seed: int = 0,
     ) -> None:
-        """Place up to `count` pacgums on random corridors, plus 4 supers. """
+        """Place up to `count` pacgums on random corridors, plus 4 supers."""
         self.pacgums: dict[tuple[int, int], str] = {}
         self._blink_timer: float = 0.0
         self._blink_visible: bool = True
@@ -70,7 +71,7 @@ class Pacgums:
         )
 
     def _resolve_supers(self, maze: Maze) -> list[tuple[int, int]]:
-        """BFS from each of the 4 maze corners to the nearest valid cell. """
+        """BFS from each of the 4 maze corners to the nearest valid cell."""
         corners = [
             (1, 1),
             (1, len(maze.out[0]) - 2),
@@ -85,15 +86,15 @@ class Pacgums:
         return cells
 
     def _bfs_walkable(
-        self, maze: Maze, sr: int, sc: int
+        self, maze: Maze, sr: int, sc: int,
     ) -> tuple[int, int] | None:
         """BFS from (sr, sc) to nearest valid cell."""
         rows = len(maze.out)
         cols = len(maze.out[0])
         visited: set[tuple[int, int]] = set()
-        queue: list[tuple[int, int]] = [(sr, sc)]
+        queue: deque[tuple[int, int]] = deque([(sr, sc)])
         while queue:
-            r, c = queue.pop(0)
+            r, c = queue.popleft()
             if (r, c) in visited:
                 continue
             visited.add((r, c))
@@ -129,7 +130,6 @@ class Pacgums:
             self._blink_visible = not self._blink_visible
 
     def draw(self, screen: Any, offset_y: int = 0) -> None:
-
         """Render pacgums as dots, supers as blinking sprites."""
         half = const.TILE_SIZE // 2
         for (r, c), kind in self.pacgums.items():

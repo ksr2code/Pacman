@@ -3,9 +3,11 @@ The original Pacman had 28x36 cells (including the walls)
 """
 
 import sys
+from collections import deque
 from typing import Any
 from mazegenerator.mazegenerator import MazeGenerator
 import pygame
+import constants as const
 from config import Config
 from sprites import SpriteSheet
 
@@ -17,17 +19,17 @@ class Maze:
 
     def __init__(
         self,
-        screen: Any,
+        screen: pygame.Surface,
         conf: Config,
         seed: int | None = None,
     ) -> None:
         """Generate the maze, build render grid, pre-render."""
         self.seed = seed if seed is not None else conf.seed
         self.screen = screen
-        self.TILE_SIZE = 32
         try:
             self.maze = MazeGenerator(
-                size=(conf.width, conf.height), perfect=False
+                size=(conf.width, conf.height),
+                perfect=False,
             )
             self.maze.generate(self.seed)  # Generate once at init
             self.out = self._build_maze()
@@ -103,8 +105,8 @@ class Maze:
         """Pre-render entire maze to a single surface for faster blitting."""
         m_h = len(self.maze.maze)
         m_w = len(self.maze.maze[0])
-        width = (m_w * 2 + 1) * self.TILE_SIZE
-        height = (m_h * 2 + 1) * self.TILE_SIZE
+        width = (m_w * 2 + 1) * const.TILE_SIZE
+        height = (m_h * 2 + 1) * const.TILE_SIZE
 
         surface = pygame.Surface((width, height))
         surface.fill((0, 0, 0))
@@ -113,7 +115,7 @@ class Maze:
             for j, surf in enumerate(line):
                 if surf is None:
                     continue
-                surface.blit(surf, (j * self.TILE_SIZE, i * self.TILE_SIZE))
+                surface.blit(surf, (j * const.TILE_SIZE, i * const.TILE_SIZE))
 
         return surface
 
@@ -135,9 +137,9 @@ class Maze:
         cols = len(self.out[0])
         start = (r0 | 1, c0 | 1)
         visited: set[tuple[int, int]] = set()
-        queue: list[tuple[int, int]] = [start]
+        queue: deque[tuple[int, int]] = deque([start])
         while queue:
-            r, c = queue.pop(0)
+            r, c = queue.popleft()
             if (r, c) in visited:
                 continue
             visited.add((r, c))

@@ -14,6 +14,8 @@ DIRECTIONS = {
     "right": (0, 1),
 }
 
+DIR_NAMES = {v: k for k, v in DIRECTIONS.items()}
+
 
 class Player:
     """Grid-based player movement with direction queuing and animation."""
@@ -129,10 +131,7 @@ class Player:
     def draw(self, screen: pygame.Surface, offset_y: int = 0) -> None:
         """Render the current animation frame for the facing direction."""
         if self.direction:
-            for name, d in DIRECTIONS.items():
-                if d == self.direction:
-                    self.last_dir = name
-                    break
+            self.last_dir = DIR_NAMES.get(self.direction, self.last_dir)
         idx = int(self.anim_time * 10) % len(self.frames[self.last_dir])
         frame = self.frames[self.last_dir][idx]
         screen.blit(frame, (self.px, self.py + offset_y))

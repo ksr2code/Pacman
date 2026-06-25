@@ -11,8 +11,6 @@ from font import Text
 from game import Game
 from highscore import Highscore
 
-STATE_LEVEL_COMPLETE = "level_complete"
-
 
 class Screen(ABC):
     """Abstract base for all UI screens."""
@@ -89,17 +87,15 @@ class TitleScreen(Screen):
         title = self.font.render("PAC-MAN")
         self.screen.blit(title, ((w - title.get_width()) // 2, h // 6))
         for i, opt in enumerate(self._options):
-            color = (
-                const.COLOR_YELLOW
-                if i == self._selected
-                else const.COLOR_WHITE
-            )
-            self.font.color = color
-            surf = self.font.render(opt)
+            if i == self._selected:
+                color = const.COLOR_YELLOW
+            else:
+                color = const.COLOR_WHITE
+            surf = self.font.render(opt, color=color)
             self.screen.blit(
-                surf, ((w - surf.get_width()) // 2, h // 2 + i * 40)
+                surf,
+                ((w - surf.get_width()) // 2, h // 2 + i * 40),
             )
-        self.font.color = const.COLOR_WHITE
         if self.highscore.entries:
             hs = self.small_font.render("TOP SCORES")
             self.screen.blit(hs, ((w - hs.get_width()) // 2, h * 3 // 4))
@@ -267,7 +263,7 @@ class CheatMenuScreen(Screen):
         """Advance timers and animations."""
         if self.game.state in (
             const.STATE_VICTORY,
-            STATE_LEVEL_COMPLETE,
+            const.STATE_LEVEL_COMPLETE,
         ):
             return const.STATE_CHEAT_MENU
         return None
@@ -287,14 +283,15 @@ class CheatMenuScreen(Screen):
         for i, (name, toggle) in enumerate(self._options):
             active = toggle is not None and getattr(self.game.cheats, toggle)
             color = const.COLOR_YELLOW if active else const.COLOR_WHITE
-            self.small_font.color = color
             label = f"{i + 1} - {name.upper()}"
             if toggle is not None:
                 label += " [ON]" if active else " [OFF]"
-            surf = self.small_font.render(label)
-            self.screen.blit(surf, ((w - surf.get_width()) // 2, y))
+            surf = self.small_font.render(label, color=color)
+            self.screen.blit(
+                surf,
+                ((w - surf.get_width()) // 2, y),
+            )
             y += 28
-        self.small_font.color = const.COLOR_WHITE
         back = self.small_font.render("ESC - BACK")
         self.screen.blit(back, ((w - back.get_width()) // 2, y + 20))
 

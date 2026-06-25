@@ -14,14 +14,11 @@ from sound import Sound
 from sprites import SpriteSheet
 
 GHOST_DEFS = [
-    (const.COLOR_RED, "tl", "tr"),
-    (const.COLOR_PINK, "tr", "tl"),
-    (const.COLOR_TEAL, "bl", "br"),
-    (const.COLOR_ORANGE, "br", "bl"),
+    (const.COLOR_RED, "tr"),
+    (const.COLOR_PINK, "tl"),
+    (const.COLOR_TEAL, "br"),
+    (const.COLOR_ORANGE, "bl"),
 ]
-
-STATE_LEVEL_COMPLETE = "level_complete"
-STATE_DYING = "dying"
 
 
 @dataclass
@@ -62,16 +59,14 @@ class Game:
         self.cheats: Cheats = Cheats()
 
         self._font = Text()
-        self._small_font = Text()
-        self._small_font.size = 16
-        self._small_font.font = pygame.font.Font(self._small_font.path, 16)
-        self.maze: Maze = None  # type: ignore[assignment]
-        self.player: Player = None  # type: ignore[assignment]
-        self.pacgums: Pacgums = None  # type: ignore[assignment]
+        self._small_font = Text(size=16)
+        self.maze: Maze | None = None
+        self.player: Player | None = None
+        self.pacgums: Pacgums | None = None
         self.ghosts: list[Ghost] = []
         self._player_spawn: tuple[int, int] = (1, 1)
         self._ghost_spawns: list[tuple[int, int]] = []
-        self._life_icon: pygame.Surface = None  # type: ignore[assignment]
+        self._life_icon: pygame.Surface | None = None
 
         self._init_level(cfg.seed)
 
@@ -112,7 +107,7 @@ class Game:
         self._ghost_spawns = self._find_ghost_spawns()
         ss = self._get_ghost_spritesheet()
         if not self.ghosts:
-            for i, (color, _, scatter_key) in enumerate(GHOST_DEFS):
+            for i, (color, scatter_key) in enumerate(GHOST_DEFS):
                 r, c = self._ghost_spawns[i]
                 self.ghosts.append(
                     Ghost(
@@ -130,18 +125,20 @@ class Game:
                 r, c = self._ghost_spawns[i]
                 g.maze = self.maze
                 g.reset(r, c)
-                g.scatter_goal = corners[GHOST_DEFS[i][2]]
+                g.scatter_goal = corners[GHOST_DEFS[i][1]]
 
+        level_bonus = (
+            (self.level_number - 1) * const.GHOST_SPEED_PER_LEVEL
+        )
         ghost_speed = (
-            const.GHOST_SPEED
-            + (self.level_number - 1) * const.GHOST_SPEED_PER_LEVEL
+            const.GHOST_SPEED + level_bonus
         ) * const.TILE_SIZE
         for g in self.ghosts:
             g.set_base_speed(ghost_speed)
 
+        decrease = (self.level_number - 1) * const.FREIGHT_TIME_DECREASE
         self._current_freight_time = max(
-            const.FREIGHT_TIME
-            - (self.level_number - 1) * const.FREIGHT_TIME_DECREASE,
+            const.FREIGHT_TIME - decrease,
             const.MIN_FREIGHT_TIME,
         )
 
@@ -162,6 +159,7 @@ class Game:
 
     def handle_event(self, event: pygame.event.Event) -> None:
         """Route keyboard input to pause, cheats, or player movement."""
+        assert self.player is not None
         if event.type != pygame.KEYDOWN:
             return
         if event.key == pygame.K_SPACE:
@@ -190,9 +188,11 @@ class Game:
 
     def update(self, dt: float) -> None:
         """Advance game state: death animation, timers, movement, collision."""
+        assert self.player is not None
+        assert self.pacgums is not None
         if self.state == const.STATE_GAME_OVER:
             return
-        if self.state == STATE_DYING:
+        if self.state == const.STATE_DYING:
             self._death_timer -= dt
             if self._death_timer <= 0:
                 if self.lives <= 0:
@@ -203,7 +203,7 @@ class Game:
                     self._invincible_timer = const.INVINCIBLE_TIME
                     self.state = const.STATE_PLAYING
             return
-        if self.state == STATE_LEVEL_COMPLETE:
+        if self.state == const.STATE_LEVEL_COMPLETE:
             self._pause_timer -= dt
             if self._pause_timer <= 0:
                 self._advance_level()
@@ -245,6 +245,8 @@ class Game:
 
     def _check_eating(self) -> None:
         """Score pacgum/super; trigger victory or level complete."""
+        assert self.player is not None
+        assert self.pacgums is not None
         kind = self.pacgums.eat(self.player.grid_row, self.player.grid_col)
         if kind == "pacgum":
             self.score += self.cfg.points_per_pacgum
@@ -257,7 +259,7 @@ class Game:
             if self.level_number >= const.NUM_LEVELS:
                 self.state = const.STATE_VICTORY
             else:
-                self.state = STATE_LEVEL_COMPLETE
+                self.state = const.STATE_LEVEL_COMPLETE
                 self._pause_timer = const.LEVEL_COMPLETE_PAUSE
 
     def _start_freight(self) -> None:
@@ -288,30 +290,26 @@ class Game:
 
     def _update_eyes_sound(self) -> None:
         """Stop eyes sound when no ghost is returning home."""
-        if self._eyes_sound and not any(
-            g.mode == "spawn" for g in self.ghosts
-        ):
+        any_spawning = any(g.mode == "spawn" for g in self.ghosts)
+        if self._eyes_sound and not any_spawning:
             self._eyes_sound.stop()
             self._eyes_sound = None
 
     def _update_mode(self, dt: float) -> None:
         """Toggle between scatter and chase modes on timer."""
         self._mode_timer += dt
-        if (
-            self._current_mode == "scatter"
-            and self._mode_timer >= const.SCATTER_TIME
-        ):
+        is_scatter = self._current_mode == "scatter"
+        is_chase = self._current_mode == "chase"
+        if is_scatter and self._mode_timer >= const.SCATTER_TIME:
             self._current_mode = "chase"
             self._mode_timer = 0.0
-        elif (
-            self._current_mode == "chase"
-            and self._mode_timer >= const.CHASE_TIME
-        ):
+        elif is_chase and self._mode_timer >= const.CHASE_TIME:
             self._current_mode = "scatter"
             self._mode_timer = 0.0
 
     def _update_ghost_goals(self) -> None:
         """Set each ghost's goal based on current mode."""
+        assert self.player is not None
         pr = self.player.grid_row
         pc = self.player.grid_col
         for g in self.ghosts:
@@ -324,6 +322,7 @@ class Game:
 
     def _check_ghost_collision(self) -> None:
         """Handle player-ghost overlap: eat freighted ghost or lose a life."""
+        assert self.player is not None
         if self._invincible_timer > 0 and not self.cheats.invincible:
             return
         for g in self.ghosts:
@@ -352,13 +351,14 @@ class Game:
                     continue
                 self.lives -= 1
                 self._stop_fright_sound()
-                self.state = STATE_DYING
+                self.state = const.STATE_DYING
                 self._death_timer = const.DEATH_ANIM_TIME
                 Sound("death_0.ogg").play()
                 return
 
     def _reset_positions(self) -> None:
         """Reset player and ghosts to spawns after death."""
+        assert self.player is not None
         self.player.reset(*self._player_spawn)
         for i, g in enumerate(self.ghosts):
             g.reset(*self._ghost_spawns[i])
@@ -414,7 +414,7 @@ class Game:
         if self.level_number >= const.NUM_LEVELS:
             self.state = const.STATE_VICTORY
         else:
-            self.state = STATE_LEVEL_COMPLETE
+            self.state = const.STATE_LEVEL_COMPLETE
             self._pause_timer = const.LEVEL_COMPLETE_PAUSE
 
     def extra_life(self) -> None:
@@ -423,6 +423,7 @@ class Game:
 
     def _find_ghost_spawns(self) -> list[tuple[int, int]]:
         """Find nearest walkable cell to each maze corner."""
+        assert self.maze is not None
         rows = len(self.maze.out)
         cols = len(self.maze.out[0])
         corners = [
@@ -435,9 +436,12 @@ class Game:
 
     def draw(self) -> None:
         """Render maze, pacgums, player, ghosts, and HUD."""
+        assert self.maze is not None
+        assert self.pacgums is not None
+        assert self.player is not None
         self.maze.draw(self.hud_offset)
         self.pacgums.draw(self.screen, self.hud_offset)
-        if self.state == STATE_DYING:
+        if self.state == const.STATE_DYING:
             progress = 1.0 - (self._death_timer / const.DEATH_ANIM_TIME)
             self.player.draw_death(self.screen, self.hud_offset, progress)
         else:
@@ -452,6 +456,7 @@ class Game:
 
     def _draw_hud(self) -> None:
         """Render score, level, timer, life icons, cheat label."""
+        assert self._life_icon is not None
         screen_w = self.screen.get_width()
 
         score_surf = self._small_font.render(f"{self.score}")
