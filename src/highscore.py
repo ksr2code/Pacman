@@ -28,6 +28,7 @@ class Highscore:
                 if isinstance(e, dict)
                 and isinstance(e.get("name"), str)
                 and isinstance(e.get("score"), int)
+                and not isinstance(e.get("score"), bool)
                 and e["score"] >= 0
             ]
             self.entries.sort(key=lambda e: e["score"], reverse=True)

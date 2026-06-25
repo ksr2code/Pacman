@@ -8,7 +8,7 @@ reproducible steps and the current status. Statuses:
 - **FIXED** — was FAIL, now PASS, with date fixed
 
 Manual tests are run via `make run` (or `make build` + browser for WASM).
-Automated unit tests are out of scope for this project (no `test/` dir).
+Automated unit tests are out of scope for this project.
 
 ---
 
@@ -130,6 +130,3 @@ Automated unit tests are out of scope for this project (no `test/` dir).
 
 - **R6 (open)**: `uv.lock` wheel filename mismatch for `mazegenerator`
   requires `UV_SKIP_WHEEL_FILENAME_CHECK=1`. Upstream issue.
-- **Pre-existing mypy errors** in `screens.py`, `maze.py`, `font.py`,
-  `main.py` (unannotated returns / unused ignores) — not blocking, flagged
-  for a future cleanup pass.

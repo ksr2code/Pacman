@@ -53,7 +53,7 @@ python3 pac-man.py config.json
 
 The config file supports standard JSON with comment lines starting with `#` or `//`.
 
-| Key | Type | Default | Description |
+| Key | Type | Default (dataclass) | Description |
 |-----|------|---------|-------------|
 | `highscore_filename` | string | `"highscore.json"` | Path to highscore file |
 | `width` | int | `14` | Maze width (min 5) |
@@ -66,7 +66,7 @@ The config file supports standard JSON with comment lines starting with `#` or `
 | `seed` | int | `42` | Base seed for level 1 maze |
 | `level_max_time` | int | `90` | Seconds per level (min 10) |
 
-- The game has 10 levels; each level uses `seed = base_seed + level - 1` for maze generation.
+- The game has 10 levels; each level uses a derived seed (`base_seed + level - 1`) for a distinct, reproducible maze per level.
 - Missing keys fall back to dataclass defaults above (the shipped `config.json` is a sample override).
 - Invalid values are clamped to safe minimums and logged to stderr.
 - Unknown keys are silently ignored.

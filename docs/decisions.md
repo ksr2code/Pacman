@@ -133,4 +133,3 @@ README).
 
 **Why**: Bounded scope for a course project; finite win state is testable;
 maze seed is `cfg.seed + level - 1` so extending is trivial if needed.
-README previously claimed "infinite" — to be reconciled.

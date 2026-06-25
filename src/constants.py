@@ -3,7 +3,7 @@ from typing import Sequence
 # Sprite and display constants
 TILE_SIZE = 32  # pixels
 HUD_HEIGHT = 40  # pixels above maze
-PACMAN_SPEED = 5  # tiles per frame
+PACMAN_SPEED = 5  # tiles per second
 GHOST_SPEED = 3
 
 # Colors (RGB tuples)

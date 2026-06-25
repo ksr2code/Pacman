@@ -1,5 +1,5 @@
 export UV_SKIP_WHEEL_FILENAME_CHECK=1
-.PHONY: install run debug clean lint lint-strict test re push skip
+.PHONY: install run debug clean lint lint-strict re push skip
 
 ifneq (,$(wildcard ./.env))
     include .env
@@ -43,11 +43,6 @@ clean:
 	find . -name .ruff_cache -exec rm -rf {} +
 	find . -name "*.pyc" -delete
 	find . -name "*.pyo" -delete
-
-# use this target to run the unit tests
-test:
-	pytest test -vv
-	@echo "WHEN PROJECT IF FINISHED REMOVE THE TEST FOLDER"
 
 lint:
 	uv run flake8 $(PY_FILES)
