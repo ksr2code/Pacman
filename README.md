@@ -41,7 +41,33 @@ make build
 
 ## Resources
 
+### Classic references
+
 - [Pacmancode](https://pacmancode.com/) — Pac-Man game development tutorial
+- [Pygame documentation](https://www.pygame.org/docs/) — graphics, input, and audio library
+- [mypy documentation](https://mypy.readthedocs.io/) — static type checking
+- [Python `typing`](https://docs.python.org/3/library/typing.html) — type hints
+
+### Use of AI
+
+AI assistants were used as a support tool throughout the project. All generated
+content was reviewed, tested, and is fully understood by the authors, who take
+responsibility for it. AI was used for:
+
+- **Architecture & design** — discussing the module/screen split, the game state
+  machine, and the maze-grid adaptation strategy.
+- **Type hints & docstrings** — modernizing annotations across `src/` and
+  drafting PEP 257 docstrings for functions and classes.
+- **Refactoring** — suggestions for cleaner code (e.g. `deque`-based BFS,
+  deduplication of constants, the `Text` rendering API).
+- **Debugging** — analysing gameplay bugs (ghost scoring/speed, the fright sound
+  loop, tunneling collision) and proposing fixes that were verified by hand.
+- **Documentation** — drafting sections of this README and the project-management
+  documents in [`docs/`](docs/).
+
+No AI output was committed without human review and manual testing. AI was **not**
+used to write the A-Maze-ing package (supplied unmodified by another group), nor
+to replace the authors' understanding of the core game logic.
 
 ## Configuration
 

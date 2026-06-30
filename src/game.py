@@ -217,6 +217,7 @@ class Game:
         self._level_timer -= dt
         if self._level_timer <= 0:
             self._level_timer = 0
+            self._stop_looping_sounds()
             self.state = const.STATE_GAME_OVER
             return
         if self._freight_timer > 0:
@@ -287,6 +288,13 @@ class Game:
         if self._fright_sound:
             self._fright_sound.stop()
             self._fright_sound = None
+
+    def _stop_looping_sounds(self) -> None:
+        """Stop the fright and eyes loops (e.g. on game end)."""
+        self._stop_fright_sound()
+        if self._eyes_sound:
+            self._eyes_sound.stop()
+            self._eyes_sound = None
 
     def _update_eyes_sound(self) -> None:
         """Stop eyes sound when no ghost is returning home."""
