@@ -104,12 +104,21 @@ class Ghost:
     def _choose_random_direction(
         self,
     ) -> tuple[int, int] | None:
-        """Pick a random walkable direction."""
+        """Pick a random walkable direction, avoiding the player."""
         options = self._get_walkable_directions()
         if not options:
             options = self._get_walkable_directions(exclude_reverse=False)
         if not options:
             return None
+        if len(options) > 1:
+            nearest = min(
+                options,
+                key=lambda d: math.hypot(
+                    self.grid_row + d[0] - self.goal[0],
+                    self.grid_col + d[1] - self.goal[1],
+                ),
+            )
+            options = [d for d in options if d != nearest]
         return random.choice(options)
 
     def _bfs_distance(self, sr: int, sc: int) -> float | int:

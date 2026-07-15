@@ -127,12 +127,8 @@ class Game:
                 g.reset(r, c)
                 g.scatter_goal = corners[GHOST_DEFS[i][1]]
 
-        level_bonus = (
-            (self.level_number - 1) * const.GHOST_SPEED_PER_LEVEL
-        )
-        ghost_speed = (
-            const.GHOST_SPEED + level_bonus
-        ) * const.TILE_SIZE
+        level_bonus = (self.level_number - 1) * const.GHOST_SPEED_PER_LEVEL
+        ghost_speed = (const.GHOST_SPEED + level_bonus) * const.TILE_SIZE
         for g in self.ghosts:
             g.set_base_speed(ghost_speed)
 
@@ -321,9 +317,11 @@ class Game:
         pr = self.player.grid_row
         pc = self.player.grid_col
         for g in self.ghosts:
-            if g.mode in ("freight", "spawn", "idle"):
+            if g.mode in ("spawn", "idle"):
                 continue
-            if self._current_mode == "scatter":
+            if g.mode == "freight":
+                g.set_goal(pr, pc)
+            elif self._current_mode == "scatter":
                 g.set_goal(*g.scatter_goal)
             else:
                 g.set_goal(pr, pc)
