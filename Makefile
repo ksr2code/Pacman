@@ -8,6 +8,7 @@ endif
 
 PY_FILES := pac-man.py $(shell find src -name '*.py' -type f)
 MYPY_FILES := $(filter-out pac-man.py,$(PY_FILES))
+ARGS ?= config.json
 
 GREEN := \033[0;32mOK\033[0m
 RED := \033[0;31mKO\033[0m
