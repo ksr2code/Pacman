@@ -31,6 +31,8 @@ make clean       # remove caches
 make push        # push the build to ithc.io
 ```
 
+> Note: raw `uv run` commands outside `make` require `UV_SKIP_WHEEL_FILENAME_CHECK=1` (a local wheel has a non-standard filename version).
+
 ### Packaging for Itch.io
 
 Pygbag compiles the game to WebAssembly for browser play:
