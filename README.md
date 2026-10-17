@@ -19,7 +19,8 @@ make install
 ```bash
 make run
 # or directly:
-python3 pac-man.py config.json
+python3 pac-man.py src/config.json
+# customize: cp src/config.json myconfig.json && make run ARGS=myconfig.json
 ```
 
 ### Other commands
@@ -73,10 +74,10 @@ to replace the authors' understanding of the core game logic.
 
 ## Configuration
 
-The game is configured via a JSON file passed as a command-line argument:
+The game is configured via a JSON file passed as a command-line argument (a sample config ships at `src/config.json`):
 
 ```bash
-python3 pac-man.py config.json
+python3 pac-man.py src/config.json
 ```
 
 The config file supports standard JSON with comment lines starting with `#` or `//`.
@@ -95,7 +96,7 @@ The config file supports standard JSON with comment lines starting with `#` or `
 | `level_max_time` | int | `90` | Seconds per level (min 10) |
 
 - The game has 10 levels; each level uses a derived seed (`base_seed + level - 1`) for a distinct, reproducible maze per level.
-- Missing keys fall back to dataclass defaults above (the shipped `config.json` is a sample override).
+- Missing keys fall back to dataclass defaults above (the shipped sample config is `src/config.json`; copy it to create your own).
 - Invalid values are clamped to safe minimums and logged to stderr.
 - Unknown keys are silently ignored.
 - Wrong types (e.g. `width: "abc"`, `cheat: "yes"`, `lives: true`) fall back to defaults; `bool` is rejected for `int` fields.
