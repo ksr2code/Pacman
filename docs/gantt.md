@@ -33,7 +33,7 @@ gantt
     PM documentation           :done, p5b, after p5a, 1d
 
     section Downloadable Build
-    Linux package + :linux     :done, p6a, 2026-10-18, 1d
+    Linux package              :done, p6a, 2026-10-15, 3d
 ```
 
 Notes:
