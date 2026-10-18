@@ -6,6 +6,7 @@ ifneq (,$(wildcard ./.env))
     export
 endif
 
+SHELL := /bin/bash
 PY_FILES := pac-man.py $(shell find src -name '*.py' -type f)
 MYPY_FILES := $(filter-out pac-man.py,$(PY_FILES))
 ARGS ?= src/config.json
