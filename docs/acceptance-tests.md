@@ -124,6 +124,16 @@ Automated unit tests are out of scope for this project.
 | WASM-03 | Audio in browser | Sounds play | PASS | `-pygbag.ogg` variants |
 | WASM-04 | `make push` | Deploys to itch.io | PASS | butler |
 
+## PKG — Linux downloadable build
+
+| ID | Steps | Expected | Status | Notes |
+|----|-------|----------|--------|-------|
+| PKG-01 | `make pack` | Builds `release/linux/Pac-Man` (onefile, ~21 MB) | PASS | PyInstaller 6 |
+| PKG-02 | Run exe from an unrelated directory | Starts with bundled config; saves land next to the exe | PASS | frozen-mode `chdir` guard |
+| PKG-03 | Play a run, enter name, quit, relaunch | `highscore.json` persists next to the exe | PASS | |
+| PKG-04 | `make push-linux`, open itch page | Linux download offered next to the browser build | PASS | butler `:linux` channel |
+| PKG-05 | Download from itch, run downloaded binary | Game runs identically to local build | PASS | verified on `:linux` v1 |
+
 ---
 
 ## Known issues not covered above

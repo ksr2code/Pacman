@@ -36,10 +36,17 @@ Lint cleanup, config validation overhaul, documentation.
 - `2026-06-22`: Makefile/flake8 cleanup
 - `2026-06-23`: config clamping + pacgum count wiring; PM docs
 
+### Phase 6 — Linux downloadable build (Oct 18)
+PyInstaller packaging and second itch.io channel for the evaluation
+requirement "package available for download".
+- `2026-10-18`: frozen-aware entry point, `pac-man.spec`, `make pack`
+  and `make push-linux`, live on itch `:linux` (branch
+  `packaging/linux-download`, merged same day)
+
 ## Velocity
 
-- **Active development days**: ~12 (commits present)
-- **Calendar span**: 7 weeks (May 5 – Jun 23), with gaps for other coursework
-- **Total commits**: ~65
+- **Active development days**: ~13 (commits present)
+- **Calendar span**: May 5 – Oct 18, with gaps for other coursework
+- **Total commits**: 88
 
 See [gantt.md](gantt.md) for the visual timeline.

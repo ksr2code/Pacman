@@ -16,6 +16,7 @@ overlap on architecture decisions.
 | Config system (`config.py`) | `<ksmailov>` | |
 | Highscore (`highscore.py`) | `<ksmailov>` | |
 | WASM / pygbag packaging, itch.io deploy | `<abalcu>` | |
+| Linux downloadable build (PyInstaller, `:linux` channel) | `<ksmailov>` | |
 | Sound & sprites (`sound.py`, `sprites.py`) | `<abalcu>` | |
 | Documentation, README | `<abalcu>` | |
 

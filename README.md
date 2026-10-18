@@ -29,18 +29,36 @@ python3 pac-man.py src/config.json
 make lint        # flake8 + mypy
 make debug       # run with pdb
 make clean       # remove caches
-make push        # push the build to ithc.io
+make pack        # build the Linux executable (release/linux/)
+make push        # push the web build to itch.io
+make push-linux  # push the Linux build to itch.io (:linux channel)
 ```
 
 > Note: raw `uv run` commands outside `make` require `UV_SKIP_WHEEL_FILENAME_CHECK=1` (a local wheel has a non-standard filename version).
 
 ### Packaging for Itch.io
 
-Pygbag compiles the game to WebAssembly for browser play:
+The itch.io page offers both a browser build and a Linux download.
+
+**Web (browser):** pygbag compiles the game to WebAssembly:
 
 ```bash
-make build
+make build       # build src/build/web
+make push        # deploy to itch.io (:web channel)
 ```
+
+**Linux (downloadable):** PyInstaller freezes the game into a single
+self-contained executable (no Python required on the player's machine):
+
+```bash
+make pack        # build release/linux/Pac-Man (+ in-package README)
+make push-linux  # deploy to itch.io (:linux channel)
+```
+
+The executable runs out of the box (`chmod +x Pac-Man && ./Pac-Man`),
+picks up an optional `config.json` placed next to it, and stores
+`highscore.json` beside itself. In-package instructions ship inside the
+download (see `PACKAGE.md`).
 
 ## Resources
 

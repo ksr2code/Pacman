@@ -12,6 +12,7 @@ living tracker.
 | R4 | **Level unsolvability** — random pacgum placement could exceed corridor cells or block completion | Medium | Medium | Local seeded `random.Random`; `count` clamped to `len(candidates)`; 4 super-pacgums reserved in corners before random selection (Jun 23 fix) | Closed |
 | R5 | **Cross-platform audio codecs** — desktop vs browser `.ogg` support differs | Medium | Medium | Per-target asset variants shipped under `src/assets/sounds/`; runtime picks the platform-appropriate file | Closed |
 | R6 | **`uv.lock` wheel filename mismatch** — wheel file named `mazegenerator-1` reports version `2.0.1`, breaking strict uv checks | Low | High | Documented; `UV_SKIP_WHEEL_FILENAME_CHECK=1` workaround in CI/dev workflow | Open (upstream) |
+| R7 | **Frozen-exe portability (glibc)** — PyInstaller binary built on a newer distro may not run on older campus images | Medium | Low | Build verified via fresh-clone simulation and playtest on target environment; rebuild path documented (`make pack`) | Closed |
 
 ## Risk process
 

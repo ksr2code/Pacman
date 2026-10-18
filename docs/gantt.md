@@ -5,7 +5,7 @@ the GitHub UI → "Download PNG".
 
 ```mermaid
 gantt
-    title Pac-Man — Project Timeline (May 5 – Jun 23, 2026)
+    title Pac-Man — Project Timeline (May 5 – Oct 18, 2026)
     dateFormat  YYYY-MM-DD
     axisFormat  %b %d
 
@@ -31,6 +31,9 @@ gantt
     section Hardening
     Lint & config validation   :done, p5a, 2026-06-22, 2d
     PM documentation           :done, p5b, after p5a, 1d
+
+    section Downloadable Build
+    Linux package + :linux     :done, p6a, 2026-10-18, 1d
 ```
 
 Notes:
