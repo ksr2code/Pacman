@@ -1,5 +1,5 @@
 export UV_SKIP_WHEEL_FILENAME_CHECK=1
-.PHONY: install run debug clean lint lint-strict re push skip
+.PHONY: install run debug clean lint lint-strict re push push-linux pack skip
 
 ifneq (,$(wildcard ./.env))
     include .env
@@ -9,6 +9,7 @@ endif
 PY_FILES := pac-man.py $(shell find src -name '*.py' -type f)
 MYPY_FILES := $(filter-out pac-man.py,$(PY_FILES))
 ARGS ?= config.json
+PACK_DIR := release/linux
 
 GREEN := \033[0;32mOK\033[0m
 RED := \033[0;31mKO\033[0m
@@ -30,6 +31,13 @@ build:
 run:
 	uv run -v pac-man.py $(ARGS)
 
+pack:
+	uv run pyinstaller pac-man.spec --noconfirm
+	rm -rf $(PACK_DIR)
+	mkdir -p $(PACK_DIR)
+	mv dist/Pac-Man $(PACK_DIR)/
+	cp PACKAGE.md $(PACK_DIR)/README.md
+
 debug:
 	uv run python3 -m pdb pac-man.py $(ARGS)
 
@@ -40,6 +48,7 @@ clean:
 	find . -type d -name .pygbag -exec rm -rf {} +
 	find . -type d -name build -exec rm -rf {} +
 	find . -type d -name dist -exec rm -rf {} +
+	find . -type d -name release -exec rm -rf {} +
 	find . -name .pytest_cache -exec rm -rf {} +
 	find . -name .ruff_cache -exec rm -rf {} +
 	find . -name "*.pyc" -delete
@@ -67,4 +76,7 @@ re: clean install
 
 # push the build to itch.io
 push:
-	BUTLER_API_KEY=$(BUTLER_API_KEY) butler/butler push ./src/build/web 42-HN-DreamTeam/pac-man:web
+	@BUTLER_API_KEY=$(BUTLER_API_KEY) butler/butler push ./src/build/web 42-HN-DreamTeam/pac-man:web
+
+push-linux:
+	@BUTLER_API_KEY=$(BUTLER_API_KEY) butler/butler push $(PACK_DIR) 42-HN-DreamTeam/pac-man:linux

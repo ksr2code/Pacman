@@ -21,3 +21,7 @@ build/
 # OS
 .DS_Store
 .env
+
+# PyInstaller / release artifacts
+release/
+src/mazegenerator-*.dist-info/
